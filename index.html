@@ -595,7 +595,7 @@
         </div>
     </div>
 
-    <!-- Application Script (เชื่อมต่อ Firebase ตรง) -->
+    <!-- Application Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -775,12 +775,6 @@
                     snap4.forEach(d => warranties.push(d.data()));
                     const snap5 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
                     snap5.forEach(d => equipmentPrices.push(d.data()));
-                } else {
-                    basePkgs = JSON.parse(localStorage.getItem('tkp7_circuit2_base_package_pricing') || '[]');
-                    wires = JSON.parse(localStorage.getItem('tkp7_circuit2_wire_pricing') || '[]');
-                    distances = JSON.parse(localStorage.getItem('tkp7_circuit2_distance_pricing') || '[]');
-                    warranties = JSON.parse(localStorage.getItem('tkp7_circuit2_warranty_pricing') || '[]');
-                    equipmentPrices = JSON.parse(localStorage.getItem('tkp7_circuit2_pricing_basic') || '[]');
                 }
                 allBasePkgPricing = basePkgs;
 
@@ -832,8 +826,6 @@
             if (db) {
                 const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing'));
                 snap.forEach(d => basePkgs.push(d.data()));
-            } else {
-                basePkgs = JSON.parse(localStorage.getItem('tkp7_circuit2_base_package_pricing') || '[]');
             }
 
             let basePkgSum = 0;
@@ -859,8 +851,6 @@
                 if (db) {
                     const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
                     snap.forEach(d => distList.push(d.data()));
-                } else {
-                    distList = JSON.parse(localStorage.getItem('tkp7_circuit2_distance_pricing') || '[]');
                 }
                 distList.forEach(d => {
                     const nums = d.range.match(/\d+/g);
@@ -899,38 +889,34 @@
                 submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
             }
 
-            const totalPrice = await calculateTotal();
-            const serviceSelect = document.getElementById('custService');
-            const serviceText = serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : serviceSelect.value;
-            const wireSelect = document.getElementById('custWire');
-            const wireText = wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-';
-            const warSelect = document.getElementById('custWarranty');
-            const warrantyText = warSelect.options[warSelect.selectedIndex] && warSelect.selectedIndex > 0 ? warSelect.options[warSelect.selectedIndex].getAttribute('data-name') : '-';
-
-            const newCustomer = {
-                name: document.getElementById('custName').value.trim(),
-                phone: document.getElementById('custPhone').value.trim(),
-                email: document.getElementById('custEmail').value.trim() || '-',
-                recommender: document.getElementById('custRecommender').value.trim() || '-',
-                service: serviceText,
-                installStatus: 'งานใหม่',
-                wireBrand: wireText,
-                warranty: warrantyText,
-                distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
-                address: document.getElementById('custAddress').value.trim(),
-                note: document.getElementById('custNote').value.trim() || '-',
-                totalPrice: totalPrice,
-                googleId: googleIdContext,
-                createdAt: new Date().toISOString()
-            };
-
             try {
+                const totalPrice = await calculateTotal();
+                const serviceSelect = document.getElementById('custService');
+                const serviceText = serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : serviceSelect.value;
+                const wireSelect = document.getElementById('custWire');
+                const wireText = wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-';
+                const warSelect = document.getElementById('custWarranty');
+                const warrantyText = warSelect.options[warSelect.selectedIndex] && warSelect.selectedIndex > 0 ? warSelect.options[warSelect.selectedIndex].getAttribute('data-name') : '-';
+
+                const newCustomer = {
+                    name: document.getElementById('custName').value.trim(),
+                    phone: document.getElementById('custPhone').value.trim(),
+                    email: document.getElementById('custEmail').value.trim() || '-',
+                    recommender: document.getElementById('custRecommender').value.trim() || '-',
+                    service: serviceText,
+                    installStatus: 'งานใหม่',
+                    wireBrand: wireText,
+                    warranty: warrantyText,
+                    distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
+                    address: document.getElementById('custAddress').value.trim(),
+                    note: document.getElementById('custNote').value.trim() || '-',
+                    totalPrice: totalPrice,
+                    googleId: googleIdContext,
+                    createdAt: new Date().toISOString()
+                };
+
                 if (db) {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), newCustomer);
-                } else {
-                    let localData = JSON.parse(localStorage.getItem('tkp7_circuit2_customers') || '[]');
-                    localData.push({ id: 'local_' + Date.now(), ...newCustomer });
-                    localStorage.setItem('tkp7_circuit2_customers', JSON.stringify(localData));
                 }
                 document.getElementById('customerForm').reset();
                 document.getElementById('custDistanceInput').value = '0';
@@ -953,27 +939,15 @@
             try {
                 const cust = allCustomers.find(c => c.id === customerId);
                 if (cust) cust.installStatus = newStatus;
-                if (db && !customerId.startsWith('local_')) {
+                if (db) {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', customerId), { installStatus: newStatus });
-                } else {
-                    let localData = JSON.parse(localStorage.getItem('tkp7_circuit2_customers') || '[]');
-                    localData = localData.map(c => { if (c.id === customerId) c.installStatus = newStatus; return c; });
-                    localStorage.setItem('tkp7_circuit2_customers', JSON.stringify(localData));
                 }
-                renderPrintSheets(allCustomers);
             } catch (err) {
                 console.error("Error updating install status:", err);
             }
         };
 
         window.printCurrentForm = async function() {
-            const name = document.getElementById('custName').value.trim();
-            const phone = document.getElementById('custPhone').value.trim();
-            if (!name || !phone) {
-                showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกชื่อและเบอร์โทรศัพท์ก่อนพิมพ์ใบงาน', false);
-                return;
-            }
-            // สามารถเรียกพิมพ์ใบงานได้ปกติ
             window.print();
         };
 
@@ -984,11 +958,9 @@
                 if (db) {
                     const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'));
                     snap.forEach(d => customers.push({ id: d.id, ...d.data() }));
-                } else {
-                    customers = JSON.parse(localStorage.getItem('tkp7_circuit2_customers') || '[]');
                 }
             } catch (err) {
-                customers = JSON.parse(localStorage.getItem('tkp7_circuit2_customers') || '[]');
+                customers = [];
             }
             customers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             allCustomers = customers;
@@ -1044,11 +1016,8 @@
             if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
             if (!confirm("คุณต้องการลบข้อมูลลูกค้ารายนี้ใช่หรือไม่?")) return;
             try {
-                if (db && !id.startsWith('local_')) {
+                if (db) {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id));
-                } else {
-                    let localData = JSON.parse(localStorage.getItem('tkp7_circuit2_customers') || '[]');
-                    localStorage.setItem('tkp7_circuit2_customers', JSON.stringify(localData.filter(c => c.id !== id)));
                 }
                 loadCustomers();
             } catch (err) {
@@ -1056,63 +1025,262 @@
             }
         };
 
+        // --- PRICING & MANAGEMENT SAVE & LOAD FUNCTIONS ---
         window.handleSavePricing = async function(event) {
             event.preventDefault();
-            const brand = document.getElementById('priceBrand').value.trim();
-            const itemKeyId = brand.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
-            const item = {
-                id: itemKeyId,
-                brand: brand,
-                amount: parseFloat(document.getElementById('priceAmount').value),
-                circuitPrice: parseFloat(document.getElementById('priceCircuit').value),
-                updatedAt: new Date().toISOString()
-            };
-            if (db) {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', itemKeyId), item);
+            try {
+                const brand = document.getElementById('priceBrand').value.trim();
+                const itemKeyId = brand.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
+                const item = {
+                    id: itemKeyId,
+                    brand: brand,
+                    amount: parseFloat(document.getElementById('priceAmount').value),
+                    circuitPrice: parseFloat(document.getElementById('priceCircuit').value),
+                    updatedAt: new Date().toISOString()
+                };
+                if (db) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', itemKeyId), item);
+                }
+                document.getElementById('priceBrand').value = '';
+                document.getElementById('priceAmount').value = '';
+                document.getElementById('priceCircuit').value = '';
+                await loadPricing();
+                populateFormDropdowns();
+                showModal('บันทึกสำเร็จ', 'บันทึกราคาอุปกรณ์เรียบร้อยแล้ว', true);
+            } catch (err) {
+                console.error("Save pricing error:", err);
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกราคาได้', false);
             }
-            document.getElementById('priceBrand').value = '';
-            document.getElementById('priceAmount').value = '';
-            document.getElementById('priceCircuit').value = '';
-            loadPricing();
-            populateFormDropdowns();
         };
 
         window.loadPricing = async function() {
             if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
             let list = [];
-            if (db) {
-                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
-                snap.forEach(d => list.push(d.data()));
-            }
-            list.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            try {
+                if (db) {
+                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
+                    snap.forEach(d => list.push(d.data()));
+                }
+            } catch (err) { list = []; }
             allPricing = list;
             const tbody = document.getElementById('pricingTableBody');
             if (!tbody) return;
-            tbody.innerHTML = list.length ===0 ? '<tr><td colspan="5" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
             list.forEach(item => {
-                tbody.innerHTML += `<tr><td class="py-3 px-6">${escapeHtml(item.brand)}</td><td class="py-3 px-6">${item.amount} ฿</td><td class="py-3 px-6">${item.circuitPrice} ฿</td><td class="py-3 px-6">-</td><td class="py-3 px-6 text-center"><button onclick="deletePricingItem('${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.brand)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.amount} ฿</td><td class="py-3 px-6 text-pink-700 font-bold">${item.circuitPrice} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deletePricingItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
         window.deletePricingItem = async function(id) {
-            if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', id));
-            loadPricing();
-            populateFormDropdowns();
+            try {
+                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', id));
+                await loadPricing();
+                populateFormDropdowns();
+            } catch (err) { console.error("Delete error:", err); }
         };
 
-        // ฟังก์ชันเสริมอื่นๆ สำหรับ Base Package, Wire, Distance, Warranty
-        window.handleSaveBasePackage = async function(e) { e.preventDefault(); /* ... */ };
-        window.loadBasePkgPricing = async function() {};
-        window.deleteBasePkgItem = async function() {};
-        window.handleSaveWirePricing = async function(e) { e.preventDefault(); /* ... */ };
-        window.loadWirePricing = async function() {};
-        window.deleteWireItem = async function() {};
-        window.handleSaveDistancePricing = async function(e) { e.preventDefault(); /* ... */ };
-        window.loadDistancePricing = async function() {};
-        window.deleteDistanceItem = async function() {};
-        window.handleSaveWarrantyPricing = async function(e) { e.preventDefault(); /* ... */ };
-        window.loadWarrantyPricing = async function() {};
-        window.deleteWarrantyItem = async function() {};
+        window.handleSaveBasePackage = async function(event) {
+            event.preventDefault();
+            try {
+                const pkgName = document.getElementById('basePkgName').value.trim();
+                const pkgKeyId = pkgName.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
+                const item = {
+                    id: pkgKeyId,
+                    pkgName: pkgName,
+                    pkgPrice: parseFloat(document.getElementById('basePkgPrice').value),
+                    updatedAt: new Date().toISOString()
+                };
+                if (db) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing', pkgKeyId), item);
+                }
+                document.getElementById('basePkgName').value = '';
+                document.getElementById('basePkgPrice').value = '';
+                await loadBasePkgPricing();
+                populateFormDropdowns();
+                showModal('บันทึกสำเร็จ', 'บันทึกแพ็คเกจพื้นฐานเรียบร้อยแล้ว', true);
+            } catch (err) {
+                console.error("Save base pkg error:", err);
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกแพ็คเกจได้', false);
+            }
+        };
+
+        window.loadBasePkgPricing = async function() {
+            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
+            let list = [];
+            try {
+                if (db) {
+                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing'));
+                    snap.forEach(d => list.push(d.data()));
+                }
+            } catch (err) { list = []; }
+            const tbody = document.getElementById('basePkgTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            list.forEach(item => {
+                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.pkgName)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.pkgPrice} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteBasePkgItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+        };
+
+        window.deleteBasePkgItem = async function(id) {
+            try {
+                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing', id));
+                await loadBasePkgPricing();
+                populateFormDropdowns();
+            } catch (err) { console.error("Delete error:", err); }
+        };
+
+        window.handleSaveWirePricing = async function(event) {
+            event.preventDefault();
+            try {
+                const wireType = document.getElementById('wireType').value.trim();
+                const wireKeyId = wireType.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
+                const item = {
+                    id: wireKeyId,
+                    wireType: wireType,
+                    wirePrice: parseFloat(document.getElementById('wirePrice').value),
+                    updatedAt: new Date().toISOString()
+                };
+                if (db) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list', wireKeyId), item);
+                }
+                document.getElementById('wireType').value = '';
+                document.getElementById('wirePrice').value = '';
+                await loadWirePricing();
+                populateFormDropdowns();
+                showModal('บันทึกสำเร็จ', 'บันทึกสายไฟเรียบร้อยแล้ว', true);
+            } catch (err) {
+                console.error("Save wire error:", err);
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกสายไฟได้', false);
+            }
+        };
+
+        window.loadWirePricing = async function() {
+            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
+            let list = [];
+            try {
+                if (db) {
+                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
+                    snap.forEach(d => list.push(d.data()));
+                }
+            } catch (err) { list = []; }
+            const tbody = document.getElementById('wireTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            list.forEach(item => {
+                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.wireType)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.wirePrice} ฿/เมตร</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteWireItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+        };
+
+        window.deleteWireItem = async function(id) {
+            try {
+                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list', id));
+                await loadWirePricing();
+                populateFormDropdowns();
+            } catch (err) { console.error("Delete error:", err); }
+        };
+
+        window.handleSaveDistancePricing = async function(event) {
+            event.preventDefault();
+            try {
+                const range = document.getElementById('distanceRange').value.trim();
+                const distKeyId = range.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
+                const item = {
+                    id: distKeyId,
+                    range: range,
+                    price: parseFloat(document.getElementById('distancePrice').value),
+                    updatedAt: new Date().toISOString()
+                };
+                if (db) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list', distKeyId), item);
+                }
+                document.getElementById('distanceRange').value = '';
+                document.getElementById('distancePrice').value = '';
+                await loadDistancePricing();
+                showModal('บันทึกสำเร็จ', 'บันทึกระยะสายเรียบร้อยแล้ว', true);
+            } catch (err) {
+                console.error("Save distance error:", err);
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกระยะสายได้', false);
+            }
+        };
+
+        window.loadDistancePricing = async function() {
+            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
+            let list = [];
+            try {
+                if (db) {
+                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
+                    snap.forEach(d => list.push(d.data()));
+                }
+            } catch (err) { list = []; }
+            const tbody = document.getElementById('distanceTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            list.forEach(item => {
+                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.range)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.price} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteDistanceItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+        };
+
+        window.deleteDistanceItem = async function(id) {
+            try {
+                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list', id));
+                await loadDistancePricing();
+            } catch (err) { console.error("Delete error:", err); }
+        };
+
+        window.handleSaveWarrantyPricing = async function(event) {
+            event.preventDefault();
+            try {
+                const warrantyType = document.getElementById('warrantyType').value.trim();
+                const warKeyId = warrantyType.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
+                const item = {
+                    id: warKeyId,
+                    warrantyType: warrantyType,
+                    warrantyPrice: parseFloat(document.getElementById('warrantyPrice').value),
+                    updatedAt: new Date().toISOString()
+                };
+                if (db) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list', warKeyId), item);
+                }
+                document.getElementById('warrantyType').value = '';
+                document.getElementById('warrantyPrice').value = '';
+                await loadWarrantyPricing();
+                populateFormDropdowns();
+                showModal('บันทึกสำเร็จ', 'บันทึกประกันเรียบร้อยแล้ว', true);
+            } catch (err) {
+                console.error("Save warranty error:", err);
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกประกันได้', false);
+            }
+        };
+
+        window.loadWarrantyPricing = async function() {
+            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
+            let list = [];
+            try {
+                if (db) {
+                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list'));
+                    snap.forEach(d => list.push(d.data()));
+                }
+            } catch (err) { list = []; }
+            const tbody = document.getElementById('warrantyTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            list.forEach(item => {
+                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.warrantyType)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.warrantyPrice} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteWarrantyItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+        };
+
+        window.deleteWarrantyItem = async function(id) {
+            try {
+                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list', id));
+                await loadWarrantyPricing();
+                populateFormDropdowns();
+            } catch (err) { console.error("Delete error:", err); }
+        };
 
         function escapeHtml(str) {
             if (!str) return '';
