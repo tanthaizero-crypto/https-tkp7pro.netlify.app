@@ -63,7 +63,7 @@
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
                             <i class="fa-solid fa-envelope"></i>
                         </span>
-                        <input type="email" id="loginEmail" required autocomplete="off" value="" class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm font-medium">
+                        <input type="email" id="loginEmail" required autocomplete="off" value="" class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm font-medium" placeholder="กรอกอีเมลของคุณ">
                     </div>
                 </div>
 
@@ -104,7 +104,7 @@
                     <button onclick="switchTab('form')" id="nav-form" class="px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white shadow-md shadow-pink-600/30 transition flex items-center gap-2">
                         <i class="fa-solid fa-user-plus"></i> <span class="hidden sm:inline">ลงทะเบียน</span>
                     </button>
-                    <button onclick="switchTab('list')" id="nav-list" class="hidden px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2">
+                    <button onclick="switchTab('list')" id="nav-list" class="px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2">
                         <i class="fa-solid fa-users-rectangle"></i> <span class="hidden sm:inline">รายการลูกค้า</span>
                         <span id="badge-count" class="bg-pink-500/30 text-pink-200 text-xs px-2 py-0.5 rounded-full font-bold border border-pink-400/30">0</span>
                     </button>
@@ -157,12 +157,12 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">อีเมล (ถ้ามี)</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">อีเมล (อัตโนมัติจากระบบ)</label>
                                 <div class="relative">
                                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
                                         <i class="fa-solid fa-envelope"></i>
                                     </span>
-                                    <input type="email" id="custEmail" placeholder="somchai@example.com" class="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm">
+                                    <input type="email" id="custEmail" readonly class="w-full pl-10 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm shadow-sm text-slate-600 font-medium cursor-not-allowed">
                                 </div>
                             </div>
 
@@ -273,13 +273,13 @@
                 </div>
             </div>
 
-            <!-- TAB 2: CUSTOMER LIST (ADMIN ONLY) -->
-            <div id="tab-list" class="space-y-6">
+            <!-- TAB 2: CUSTOMER LIST (CUSTOMERS SEE ONLY THEIR OWN, ADMIN SEES ALL) -->
+            <div id="tab-list" class="space-y-6 hidden">
                 <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
                     <div class="px-6 py-5 bg-white/60 border-b border-slate-200/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
                         <div>
                             <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว[cite: 1]
+                                <i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว
                             </h2>
                             <p class="text-xs text-slate-500">ข้อมูลการใช้บริการวงจรที่ 2 ทั้งหมดในระบบ TKP7 Pro Solutions</p>
                         </div>
@@ -311,7 +311,7 @@
                             <thead>
                                 <tr class="bg-pink-50/75 border-b border-pink-100 text-[11px] font-bold text-pink-800 uppercase tracking-wider">
                                     <th class="py-3.5 px-4">ชื่อลูกค้า / เบอร์โทร</th>
-                                    <th class="py-3.5 px-4">สถานะติดตั้ง[cite: 1]</th>
+                                    <th class="py-3.5 px-4">สถานะติดตั้ง</th>
                                     <th class="py-3.5 px-4">ผู้แนะนำ</th>
                                     <th class="py-3.5 px-4">แบรนด์อุปกรณ์</th>
                                     <th class="py-3.5 px-4">ประเภทสายไฟ</th>
@@ -319,7 +319,7 @@
                                     <th class="py-3.5 px-4">ประกัน</th>
                                     <th class="py-3.5 px-4">สถานที่ติดตั้ง</th>
                                     <th class="py-3.5 px-4">ราคารวม</th>
-                                    <th class="py-3.5 px-4 text-center no-print">ปริ้นใบงาน / จัดการ</th>
+                                    <th class="py-3.5 px-4 text-center no-print">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody id="customerTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -664,6 +664,11 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
             
+            // ดึงอีเมลมาแสดงในฟอร์มลงทะเบียนอัตโนมัติ
+            const userEmail = sessionStorage.getItem('tkp7_user_email');
+            const emailField = document.getElementById('custEmail');
+            if (emailField) emailField.value = userEmail || '';
+
             const role = sessionStorage.getItem('tkp7_user_role');
             const navList = document.getElementById('nav-list');
             const navPricing = document.getElementById('nav-pricing');
@@ -678,17 +683,16 @@
                 loadDistancePricing();
                 loadWarrantyPricing();
             } else {
-                if (navList) navList.classList.add('hidden');
+                // ลูกค้าทั่วไปก็ให้เห็นเมนูรายการลูกค้าได้ เพื่อดูเฉพาะของตัวเอง
+                if (navList) navList.classList.remove('hidden');
                 if (navPricing) navPricing.classList.add('hidden');
-                switchTab('form');
+                loadCustomers();
             }
             populateFormDropdowns();
         }
 
         window.handleLogout = function() {
-            sessionStorage.removeItem('tkp7_logged_in');
-            sessionStorage.removeItem('tkp7_user_email');
-            sessionStorage.removeItem('tkp7_user_role');
+            sessionStorage.clear();
             document.getElementById('app').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('loginEmail').value = '';
@@ -696,7 +700,7 @@
 
         window.switchTab = function(tabName) {
             const role = sessionStorage.getItem('tkp7_user_role');
-            if ((tabName === 'list' || tabName === 'pricing') && role !== 'admin') return;
+            if (tabName === 'pricing' && role !== 'admin') return;
 
             const formTab = document.getElementById('tab-form');
             const listTab = document.getElementById('tab-list');
@@ -711,16 +715,16 @@
             if (pricingTab) pricingTab.classList.add('hidden');
             
             if (navForm) navForm.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
-            if (role === 'admin') {
-                if (nodeList) nodeList.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
-                if (nodePricing) nodePricing.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
+            if (nodeList) nodeList.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
+            if (role === 'admin' && nodePricing) {
+                nodePricing.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
             }
 
             if (tabName === 'form') {
                 if (formTab) formTab.classList.remove('hidden');
                 if (navForm) navForm.className = "px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white shadow-md shadow-pink-600/30 transition flex items-center gap-2";
                 populateFormDropdowns();
-            } else if (tabName === 'list' && role === 'admin') {
+            } else if (tabName === 'list') {
                 if (listTab) listTab.classList.remove('hidden');
                 if (nodeList) nodeList.className = "px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white shadow-md shadow-pink-600/30 transition flex items-center gap-2";
                 loadCustomers();
@@ -761,10 +765,8 @@
             if (modal) modal.classList.add('hidden');
         };
 
-        // --- FIXED: โหลดข้อมูลดรอปดาวน์ให้ทุกอีเมลเห็นราคาที่แอดมินตั้งค่า ---
         async function populateFormDropdowns() {
             try {
-                // รอจนกว่าการเชื่อมต่อ db จะพร้อม (ป้องกันกรณีโหลดเร็วกว่าระบบ Firebase Auth)
                 let attempts = 0;
                 while (!db && attempts < 10) {
                     await new Promise(r => setTimeout(r, 200));
@@ -906,10 +908,12 @@
                 const warSelect = document.getElementById('custWarranty');
                 const warrantyText = warSelect.options[warSelect.selectedIndex] && warSelect.selectedIndex > 0 ? warSelect.options[warSelect.selectedIndex].getAttribute('data-name') : '-';
 
+                const userEmail = sessionStorage.getItem('tkp7_user_email') || document.getElementById('custEmail').value.trim();
+
                 const newCustomer = {
                     name: document.getElementById('custName').value.trim(),
                     phone: document.getElementById('custPhone').value.trim(),
-                    email: document.getElementById('custEmail').value.trim() || '-',
+                    email: userEmail,
                     recommender: document.getElementById('custRecommender').value.trim() || '-',
                     service: serviceText,
                     installStatus: 'งานใหม่',
@@ -928,6 +932,7 @@
                 }
                 document.getElementById('customerForm').reset();
                 document.getElementById('custDistanceInput').value = '0';
+                document.getElementById('custEmail').value = userEmail; // คงค่าอีเมลไว้เหมือนเดิม
                 calculateTotal();
                 showModal('บันทึกสำเร็จ!', 'ขอบคุณที่ใช้บริการ รอแอดมินติดต่อกลับนะค่ะ', true);
                 loadCustomers();
@@ -959,13 +964,21 @@
             window.print();
         };
 
+        // --- โหลดข้อมูลลูกค้า (กรองเฉพาะของตัวเอง หรือทั้งหมดถ้าเป็น Admin) ---
         window.loadCustomers = async function() {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
+            const role = sessionStorage.getItem('tkp7_user_role');
+            const userEmail = sessionStorage.getItem('tkp7_user_email');
+
             let customers = [];
             try {
                 if (db) {
                     const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'));
-                    snap.forEach(d => customers.push({ id: d.id, ...d.data() }));
+                    snap.forEach(d => {
+                        const data = d.data();
+                        if (role === 'admin' || data.email === userEmail) {
+                            customers.push({ id: d.id, ...data });
+                        }
+                    });
                 }
             } catch (err) {
                 customers = [];
@@ -980,6 +993,7 @@
         function renderCustomerTable(data) {
             const tbody = document.getElementById('customerTableBody');
             const emptyState = document.getElementById('emptyState');
+            const role = sessionStorage.getItem('tkp7_user_role');
             if (!tbody) return;
             tbody.innerHTML = '';
             if (data.length === 0) {
@@ -991,11 +1005,22 @@
             data.forEach(cust => {
                 const formattedTotal = cust.totalPrice ? Number(cust.totalPrice).toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '-';
                 const currentStatus = cust.installStatus || 'งานใหม่';
+                
+                // ถ้าเป็น Admin ให้เปลี่ยนสถานะได้ ถ้าเป็นลูกค้าให้แสดงสถานะอย่างเดียว
+                const statusHtml = role === 'admin' ? 
+                    `<select onchange="updateInstallStatus('${cust.id}', this.value)" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold border ${currentStatus === 'ติดตั้งแล้ว' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'}"><option value="งานใหม่" ${currentStatus === 'งานใหม่' ? 'selected' : ''}>งานใหม่</option><option value="ติดตั้งแล้ว" ${currentStatus === 'ติดตั้งแล้ว' ? 'selected' : ''}>ติดตั้งแล้ว</option></select>` :
+                    `<span class="px-2.5 py-1.5 rounded-xl text-xs font-semibold border ${currentStatus === 'ติดตั้งแล้ว' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'}">${currentStatus}</span>`;
+
+                // ปุ่มลบ: แสดงเฉพาะ Admin เท่านั้น ลูกค้าทั่วไปไม่มีสิทธิ์ลบ
+                const actionHtml = role === 'admin' ? 
+                    `<button onclick="deleteCustomer('${cust.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : 
+                    `<span class="text-xs text-slate-400">ไม่มีสิทธิ์ลบ</span>`;
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-pink-50/50 transition";
                 tr.innerHTML = `
-                    <td class="py-4 px-4"><div class="font-semibold text-slate-900">${escapeHtml(cust.name)}</div><div class="text-xs text-slate-500">${escapeHtml(cust.phone)}</div></td>
-                    <td class="py-4 px-4"><select onchange="updateInstallStatus('${cust.id}', this.value)" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold border ${currentStatus === 'ติดตั้งแล้ว' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'}"><option value="งานใหม่" ${currentStatus === 'งานใหม่' ? 'selected' : ''}>งานใหม่</option><option value="ติดตั้งแล้ว" ${currentStatus === 'ติดตั้งแล้ว' ? 'selected' : ''}>ติดตั้งแล้ว</option></select></td>
+                    <td class="py-4 px-4"><div class="font-semibold text-slate-900">${escapeHtml(cust.name)}</div><div class="text-xs text-slate-500">${escapeHtml(cust.phone)} (${escapeHtml(cust.email)})</div></td>
+                    <td class="py-4 px-4">${statusHtml}</td>
                     <td class="py-4 px-4 text-xs font-medium text-slate-700">${escapeHtml(cust.recommender || '-')}</td>
                     <td class="py-4 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-pink-100 text-pink-800">${escapeHtml(cust.service)}</span></td>
                     <td class="py-4 px-4 text-xs text-slate-700">${escapeHtml(cust.wireBrand || '-')}</td>
@@ -1003,7 +1028,7 @@
                     <td class="py-4 px-4 text-xs text-slate-700">${escapeHtml(cust.warranty || '-')}</td>
                     <td class="py-4 px-4"><div class="text-slate-700 text-xs truncate max-w-xs">${escapeHtml(cust.address)}</div></td>
                     <td class="py-4 px-4 text-pink-700 font-bold">${formattedTotal} ฿</td>
-                    <td class="py-4 px-4 text-center no-print"><button onclick="deleteCustomer('${cust.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>
+                    <td class="py-4 px-4 text-center no-print">${actionHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1033,7 +1058,7 @@
             }
         };
 
-        // --- PRICING & MANAGEMENT SAVE & LOAD FUNCTIONS ---
+        // --- PRICING & MANAGEMENT SAVE & LOAD FUNCTIONS (ADMIN ONLY) ---
         window.handleSavePricing = async function(event) {
             event.preventDefault();
             try {
