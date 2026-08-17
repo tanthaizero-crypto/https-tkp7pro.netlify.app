@@ -42,7 +42,6 @@
                     <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">E-mail</label>
                     <input type="email" id="loginEmail" required autocomplete="off" class="w-full px-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500 text-sm">
                 </div>
-                <div id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 p-2 rounded text-center">กรุณากรอกอีเมล</div>
                 <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-bold rounded-xl shadow-lg text-sm">เข้าสู่ระบบ</button>
             </form>
         </div>
@@ -158,7 +157,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: PRICING MANAGEMENT (FULL 5 SECTIONS) -->
+            <!-- TAB 3: PRICING MANAGEMENT -->
             <div id="tab-pricing" class="hidden space-y-8">
                 <!-- 1. แบรนด์อุปกรณ์ -->
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
@@ -198,7 +197,7 @@
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
                     <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-ruler text-pink-600"></i> รายการ ระยะสาย และ ราคา</h2>
                     <form onsubmit="handleSaveDistancePricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
-                        <input type="text" id="distanceRange" required placeholder="ช่วงระยะสาย" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="text" id="distanceRange" required placeholder="เช่น 0 - 10 เมตร" class="px-3 py-2 border rounded-xl text-sm">
                         <input type="number" id="distancePrice" required step="0.01" placeholder="ราคา" class="px-3 py-2 border rounded-xl text-sm">
                         <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกระยะสาย</button>
                     </form>
@@ -313,6 +312,7 @@
 
         async function populateFormDropdowns() {
             try {
+                // 1. แบรนด์อุปกรณ์
                 const snap1 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
                 let html1 = '<option value="">-- เลือกแบรนด์อุปกรณ์ --</option>';
                 snap1.forEach(d => {
@@ -323,6 +323,7 @@
                 const custService = document.getElementById('custService');
                 if (custService) custService.innerHTML = html1;
 
+                // 2. ประเภทสายไฟ (เก็บราคาต่อเมตรไว้ที่ value)
                 const snap2 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
                 let html2 = '<option value="0">-- เลือกสายไฟ --</option>';
                 snap2.forEach(d => {
@@ -332,6 +333,7 @@
                 const custWire = document.getElementById('custWire');
                 if (custWire) custWire.innerHTML = html2;
 
+                // 3. ประกัน
                 const snap3 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list'));
                 let html3 = '<option value="0">-- เลือกประกัน --</option>';
                 snap3.forEach(d => {
@@ -345,10 +347,13 @@
             } catch (err) { console.error(err); }
         }
 
+        // --- ระบบคำนวณราคารวม (รวมระยะสายที่เกินจากกำหนด) ---
         window.calculateTotal = async () => {
             let total = 0;
             let basePkgSum = 0;
             let basePkgNamesHtml = '';
+            
+            // ดึงแพ็คเกจพื้นฐาน
             try {
                 const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing'));
                 snap.forEach(d => {
@@ -366,13 +371,38 @@
                 listEl.innerHTML = basePkgNamesHtml;
             }
 
+            // ราคาอุปกรณ์
             const service = document.getElementById('custService');
             const servicePrice = (service && service.selectedIndex > 0) ? parseFloat(service.options[service.selectedIndex].getAttribute('data-price')) || 0 : 0;
             
-            const dist = parseFloat(document.getElementById('custDistanceInput')?.value) || 0;
-            const wirePricePerMeter = parseFloat(document.getElementById('custWire')?.value) || 0;
-            const distanceCharge = dist * wirePricePerMeter;
+            // ค้นหาขีดจำกัดระยะสายฟรี/รวมในระบบจาก 'distance_pricing_list'
+            let includedDistanceLimit = 0;
+            try {
+                const snapDist = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
+                snapDist.forEach(d => {
+                    const dData = d.data();
+                    // ดึงตัวเลขจากชื่อช่วง เช่น "0 - 10 เมตร" จะได้ 10 เป็นลิมิต
+                    const nums = dData.range.match(/\d+/g);
+                    if (nums && nums.length > 0) {
+                        const maxVal = parseInt(nums[nums.length - 1], 10);
+                        if (maxVal > includedDistanceLimit) includedDistanceLimit = maxVal;
+                    }
+                });
+            } catch(e) {}
 
+            const inputDistance = parseFloat(document.getElementById('custDistanceInput')?.value) || 0;
+            const wirePricePerMeter = parseFloat(document.getElementById('custWire')?.value) || 0;
+
+            let distanceCharge = 0;
+            // ถ้าระยะสายที่กรอก เกินกว่าตัวเลขที่ตั้งไว้ในระบบ ให้คิดส่วนที่เกิน คูณราคาต่อเมตรของสายไฟที่เลือก
+            if (inputDistance > includedDistanceLimit && includedDistanceLimit > 0) {
+                distanceCharge = (inputDistance - includedDistanceLimit) * wirePricePerMeter;
+            } else if (includedDistanceLimit === 0 && inputDistance > 0) {
+                // ถ้าไม่ได้กำหนดระยะฟรีไว้ คิดตามเมตรทั้งหมด
+                distanceCharge = inputDistance * wirePricePerMeter;
+            }
+
+            // ราคาประกัน
             const warranty = document.getElementById('custWarranty');
             const warrantyPrice = (warranty && warranty.selectedIndex > 0) ? parseFloat(warranty.value) || 0 : 0;
 
