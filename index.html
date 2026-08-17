@@ -8,24 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Prompt', 'sans-serif'] }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Prompt', 'sans-serif'] } } } }
     </script>
     <style>
         body { font-family: 'Prompt', sans-serif; }
         .bg-custom-image {
             background-image: linear-gradient(rgba(40, 10, 25, 0.85), rgba(60, 15, 35, 0.85)), url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1785518472043.jpg-F1j1Wn3LhRz6UaN6cR2fX9PqMv8W4p.jpeg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-attachment: fixed;
         }
         .glass-card { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); }
-        
         @media print {
             body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
             header, footer, button, .no-print { display: none !important; }
@@ -105,20 +96,17 @@
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภทสายไฟ</label>
                                 <select id="custWire" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
-                                    <option value="THW THAIUNEY">THW THAIUNEY</option>
-                                    <option value="VAF 2x2.5">VAF 2x2.5</option>
-                                    <option value="NYY">NYY</option>
+                                    <option value="0">-- เลือกสายไฟ --</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ระยะสาย (เมตร)</label>
-                                <input type="number" id="custDistanceInput" min="0" value="10" oninput="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm font-medium">
+                                <input type="number" id="custDistanceInput" min="0" value="0" oninput="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm font-medium">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ประกัน</label>
                                 <select id="custWarranty" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
-                                    <option value="1 ปี">1 ปี</option>
-                                    <option value="2 ปี">2 ปี</option>
+                                    <option value="0">-- เลือกประกัน --</option>
                                 </select>
                             </div>
                         </div>
@@ -163,16 +151,62 @@
                 </div>
             </div>
 
-            <!-- TAB 3: PRICING -->
-            <div id="tab-pricing" class="hidden space-y-6">
-                <div class="glass-card rounded-2xl p-6 border border-pink-200">
-                    <h2 class="text-lg font-bold mb-4">กำหนดราคาอุปกรณ์</h2>
-                    <form onsubmit="handleSavePricing(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+            <!-- TAB 3: PRICING MANAGEMENT (FULL 5 SECTIONS) -->
+            <div id="tab-pricing" class="hidden space-y-8">
+                <!-- 1. แบรนด์อุปกรณ์ -->
+                <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-tags text-pink-600"></i> กำหนดราคาอุปกรณ์ และวงจรที่ 2</h2>
+                    <form onsubmit="handleSavePricing(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end mb-4">
                         <input type="text" id="priceBrand" required placeholder="แบรนด์อุปกรณ์" class="px-3 py-2 border rounded-xl text-sm">
-                        <input type="number" id="priceAmount" required placeholder="แพ็คเกจพื้นฐาน" class="px-3 py-2 border rounded-xl text-sm">
-                        <input type="number" id="priceCircuit" required placeholder="ราคาวงจร" class="px-3 py-2 border rounded-xl text-sm">
-                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold">บันทึกราคา</button>
+                        <input type="number" id="priceAmount" required step="0.01" placeholder="แพ็คเกจพื้นฐาน" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="priceCircuit" required step="0.01" placeholder="ราคาวงจร" class="px-3 py-2 border rounded-xl text-sm">
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกราคา</button>
                     </form>
+                    <table class="w-full text-left text-sm"><tbody id="pricingTableBody"></tbody></table>
+                </div>
+
+                <!-- 2. แพ็คเกจพื้นฐาน -->
+                <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-box-archive text-pink-600"></i> รายการ แพ็คเกจพื้นฐาน (บาท)</h2>
+                    <form onsubmit="handleSaveBasePackage(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
+                        <input type="text" id="basePkgName" required placeholder="ชื่อแพ็คเกจ" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="basePkgPrice" required step="0.01" placeholder="ราคา" class="px-3 py-2 border rounded-xl text-sm">
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกแพ็คเกจ</button>
+                    </form>
+                    <table class="w-full text-left text-sm"><tbody id="basePkgTableBody"></tbody></table>
+                </div>
+
+                <!-- 3. สายไฟ -->
+                <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-bolt text-pink-600"></i> รายการ สายไฟ และ ราคา</h2>
+                    <form onsubmit="handleSaveWirePricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
+                        <input type="text" id="wireType" required placeholder="ประเภทสายไฟ" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="wirePrice" required step="0.01" placeholder="ราคาต่อเมตร" class="px-3 py-2 border rounded-xl text-sm">
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกสายไฟ</button>
+                    </form>
+                    <table class="w-full text-left text-sm"><tbody id="wireTableBody"></tbody></table>
+                </div>
+
+                <!-- 4. ระยะสาย -->
+                <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-ruler text-pink-600"></i> รายการ ระยะสาย และ ราคา</h2>
+                    <form onsubmit="handleSaveDistancePricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
+                        <input type="text" id="distanceRange" required placeholder="ช่วงระยะสาย" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="distancePrice" required step="0.01" placeholder="ราคา" class="px-3 py-2 border rounded-xl text-sm">
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกระยะสาย</button>
+                    </form>
+                    <table class="w-full text-left text-sm"><tbody id="distanceTableBody"></tbody></table>
+                </div>
+
+                <!-- 5. ประกัน -->
+                <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-shield-halved text-pink-600"></i> รายการ ประกัน และ ราคา</h2>
+                    <form onsubmit="handleSaveWarrantyPricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
+                        <input type="text" id="warrantyType" required placeholder="ประเภทประกัน" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="warrantyPrice" required step="0.01" placeholder="ราคา" class="px-3 py-2 border rounded-xl text-sm">
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกประกัน</button>
+                    </form>
+                    <table class="w-full text-left text-sm"><tbody id="warrantyTableBody"></tbody></table>
                 </div>
             </div>
         </main>
@@ -235,6 +269,7 @@
             const role = sessionStorage.getItem('tkp7_user_role');
             if (role === 'admin') {
                 document.getElementById('nav-pricing').classList.remove('hidden');
+                loadAllPricingTables();
             }
             document.getElementById('nav-list').classList.remove('hidden');
             loadCustomers();
@@ -249,6 +284,7 @@
             });
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             if (tab === 'list') loadCustomers();
+            if (tab === 'pricing') loadAllPricingTables();
         };
 
         window.showModal = (title, msg) => {
@@ -260,14 +296,30 @@
 
         async function populateFormDropdowns() {
             try {
-                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
-                let html = '<option value="">-- เลือกแบรนด์อุปกรณ์ --</option>';
-                snap.forEach(d => {
+                const snap1 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
+                let html1 = '<option value="">-- เลือกแบรนด์อุปกรณ์ --</option>';
+                snap1.forEach(d => {
                     const item = d.data();
                     const sumPrice = (parseFloat(item.amount) || 0) + (parseFloat(item.circuitPrice) || 0);
-                    html += `<option value="${item.brand}" data-price="${sumPrice}">${item.brand} (${sumPrice.toLocaleString()} ฿)</option>`;
+                    html1 += `<option value="${item.brand}" data-price="${sumPrice}">${item.brand} (${sumPrice.toLocaleString()} ฿)</option>`;
                 });
-                document.getElementById('custService').innerHTML = html;
+                document.getElementById('custService').innerHTML = html1;
+
+                const snap2 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
+                let html2 = '<option value="0">-- เลือกสายไฟ --</option>';
+                snap2.forEach(d => {
+                    const w = d.data();
+                    html2 += `<option value="${w.wirePrice}" data-name="${w.wireType}">${w.wireType} (${w.wirePrice} ฿/เมตร)</option>`;
+                });
+                document.getElementById('custWire').innerHTML = html2;
+
+                const snap3 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list'));
+                let html3 = '<option value="0">-- เลือกประกัน --</option>';
+                snap3.forEach(d => {
+                    const war = d.data();
+                    html3 += `<option value="${war.warrantyPrice}" data-name="${war.warrantyType}">${war.warrantyType} (${war.warrantyPrice} ฿)</option>`;
+                });
+                document.getElementById('custWarranty').innerHTML = html3;
             } catch (err) { console.error(err); }
         }
 
@@ -277,8 +329,16 @@
             if (service.selectedIndex > 0) {
                 total += parseFloat(service.options[service.selectedIndex].getAttribute('data-price')) || 0;
             }
+            const wire = document.getElementById('custWire');
+            const wirePricePerMeter = parseFloat(wire.value) || 0;
             const dist = parseFloat(document.getElementById('custDistanceInput').value) || 0;
-            total += dist * 50; 
+            total += dist * wirePricePerMeter;
+
+            const warranty = document.getElementById('custWarranty');
+            if (warranty.selectedIndex > 0) {
+                total += parseFloat(warranty.value) || 0;
+            }
+
             document.getElementById('displayTotalPrice').textContent = total.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + ' บาท';
             return total;
         };
@@ -287,16 +347,18 @@
             e.preventDefault();
             const totalPrice = calculateTotal();
             const serviceSelect = document.getElementById('custService');
-            
+            const wireSelect = document.getElementById('custWire');
+            const warrantySelect = document.getElementById('custWarranty');
+
             const newCustomer = {
                 name: document.getElementById('custName').value.trim(),
                 phone: document.getElementById('custPhone').value.trim(),
                 email: sessionStorage.getItem('tkp7_user_email'),
                 recommender: document.getElementById('custRecommender').value.trim() || '-',
                 service: serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : '-',
-                wireBrand: document.getElementById('custWire').value,
+                wireBrand: wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-',
                 distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
-                warranty: document.getElementById('custWarranty').value,
+                warranty: warrantySelect.options[warrantySelect.selectedIndex] && warrantySelect.selectedIndex > 0 ? warrantySelect.options[warrantySelect.selectedIndex].getAttribute('data-name') : '-',
                 address: document.getElementById('custAddress').value.trim(),
                 totalPrice: totalPrice,
                 installStatus: 'งานใหม่',
@@ -348,6 +410,8 @@
                 showModal('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อและเบอร์โทรศัพท์ก่อนพิมพ์ใบงาน');
                 return;
             }
+            const wireSelect = document.getElementById('custWire');
+            const warSelect = document.getElementById('custWarranty');
             const tempCust = {
                 name: name,
                 phone: phone,
@@ -355,8 +419,8 @@
                 address: document.getElementById('custAddress').value.trim() || '-',
                 service: document.getElementById('custService').value || '-',
                 distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
-                wireBrand: document.getElementById('custWire').value,
-                warranty: document.getElementById('custWarranty').value,
+                wireBrand: wireSelect.options[wireSelect.selectedIndex] ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-',
+                warranty: warSelect.options[warSelect.selectedIndex] ? warSelect.options[warSelect.selectedIndex].getAttribute('data-name') : '-',
                 totalPrice: calculateTotal()
             };
             generatePrintHTML(tempCust);
@@ -416,11 +480,11 @@
                     </div>
                     <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
                         <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ยี่ห้อสายไฟ (ประเภทสายไฟ):</span>
-                        <strong>${escapeHtml(cust.wireBrand || 'THW THAIUNEY')}</strong>
+                        <strong>${escapeHtml(cust.wireBrand || '-')}</strong>
                     </div>
                     <div style="font-size: 13px; border-bottom: 2px solid #000; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ประกัน:</span>
-                        <strong>${escapeHtml(cust.warranty || '1 ปี')}</strong>
+                        <strong>${escapeHtml(cust.warranty || '-')}</strong>
                     </div>
 
                     <div style="border: 2px solid #fbcfe8; background: #fff1f2; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -454,15 +518,42 @@
             }
         };
 
-        window.handleSavePricing = async (e) => {
-            e.preventDefault();
-            const brand = document.getElementById('priceBrand').value.trim();
-            const id = brand.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', id), {
-                id, brand, amount: parseFloat(document.getElementById('priceAmount').value), circuitPrice: parseFloat(document.getElementById('priceCircuit').value), updatedAt: new Date().toISOString()
-            });
-            showModal('บันทึกสำเร็จ', 'บันทึกราคาเรียบร้อย');
-            e.target.reset();
+        // --- Pricing Management Functions ---
+        window.loadAllPricingTables = async () => {
+            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
+            loadTableData('equipment_pricing_basic', 'pricingTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.brand)}</td><td class="py-2 px-4">${item.amount} ฿</td><td class="py-2 px-4">${item.circuitPrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('equipment_pricing_basic','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
+            loadTableData('base_package_pricing', 'basePkgTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.pkgName)}</td><td class="py-2 px-4">${item.pkgPrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('base_package_pricing','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
+            loadTableData('wire_pricing_list', 'wireTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.wireType)}</td><td class="py-2 px-4">${item.wirePrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('wire_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
+            loadTableData('distance_pricing_list', 'distanceTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.range)}</td><td class="py-2 px-4">${item.price} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('distance_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
+            loadTableData('warranty_pricing_list', 'warrantyTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.warrantyType)}</td><td class="py-2 px-4">${item.warrantyPrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('warranty_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
+        };
+
+        async function loadTableData(colName, tbodyId, rowCallback) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            let html = '';
+            const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', colName));
+            snap.forEach(d => { html += rowCallback(d.data()); });
+            tbody.innerHTML = html || '<tr><td colspan="4" class="py-3 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>';
+        }
+
+        window.handleSavePricing = async (e) => { e.preventDefault(); await saveItem('equipment_pricing_basic', document.getElementById('priceBrand').value, { brand: document.getElementById('priceBrand').value, amount: parseFloat(document.getElementById('priceAmount').value), circuitPrice: parseFloat(document.getElementById('priceCircuit').value) }); };
+        window.handleSaveBasePackage = async (e) => { e.preventDefault(); await saveItem('base_package_pricing', document.getElementById('basePkgName').value, { pkgName: document.getElementById('basePkgName').value, pkgPrice: parseFloat(document.getElementById('basePkgPrice').value) }); };
+        window.handleSaveWirePricing = async (e) => { e.preventDefault(); await saveItem('wire_pricing_list', document.getElementById('wireType').value, { wireType: document.getElementById('wireType').value, wirePrice: parseFloat(document.getElementById('wirePrice').value) }); };
+        window.handleSaveDistancePricing = async (e) => { e.preventDefault(); await saveItem('distance_pricing_list', document.getElementById('distanceRange').value, { range: document.getElementById('distanceRange').value, price: parseFloat(document.getElementById('distancePrice').value) }); };
+        window.handleSaveWarrantyPricing = async (e) => { e.preventDefault(); await saveItem('warranty_pricing_list', document.getElementById('warrantyType').value, { warrantyType: document.getElementById('warrantyType').value, warrantyPrice: parseFloat(document.getElementById('warrantyPrice').value) }); };
+
+        async function saveItem(colName, keyName, dataObj) {
+            const id = keyName.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', colName, id), { id, ...dataObj, updatedAt: new Date().toISOString() });
+            showModal('บันทึกสำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว');
+            loadAllPricingTables();
+            populateFormDropdowns();
+        }
+
+        window.deletePricingItem = async (colName, id) => {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', colName, id));
+            loadAllPricingTables();
             populateFormDropdowns();
         };
 
