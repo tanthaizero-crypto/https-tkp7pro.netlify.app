@@ -11,9 +11,7 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Prompt', 'sans-serif'],
-                    }
+                    fontFamily: { sans: ['Prompt', 'sans-serif'] }
                 }
             }
         }
@@ -26,1294 +24,414 @@
             background-position: center;
             background-attachment: fixed;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(12px);
-        }
+        .glass-card { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); }
+        
         @media print {
             body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
             header, footer, button, .no-print { display: none !important; }
             .glass-card { background: white !important; backdrop-filter: none !important; box-shadow: none !important; border: none !important; }
-            .print-sheet { display: block !important; margin: 0 !important; padding: 12px 20px !important; border: none !important; page-break-after: always; }
-            @page { margin: 10mm; }
-            .main-table-view { display: none !important; }
+            .print-sheet { display: block !important; margin: 0 !important; padding: 10px 15px !important; width: 100% !important; }
+            @page { size: A4; margin: 10mm; }
+            .main-app-content { display: none !important; }
         }
         .print-sheet { display: none; }
     </style>
 </head>
 <body class="h-full bg-custom-image text-slate-800 antialiased">
 
-    <!-- LOGIN SCREEN OVERLAY -->
+    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md no-print">
-        <div class="glass-card rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 border border-pink-300/40 text-slate-800 relative overflow-hidden">
-            <div class="absolute -top-12 -right-12 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl pointer-events-none"></div>
-            
+        <div class="glass-card rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 border border-pink-300/40 text-slate-800">
             <div class="text-center mb-6">
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-600 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/40 mx-auto mb-4 border border-pink-300/30 overflow-hidden">
-                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1785518472043.jpg-F1j1Wn3LhRz6UaN6cR2fX9PqMv8W4p.jpeg" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/db2777/ffffff?text=TKP7'">
-                </div>
                 <h2 class="text-2xl font-bold text-slate-900">TKP7 Pro Solutions</h2>
                 <p class="text-xs text-pink-600 font-semibold mt-1">ระบบลงทะเบียนข้อมูลลูกค้าวงจรที่ 2</p>
             </div>
-
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">E-mail</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
-                            <i class="fa-solid fa-envelope"></i>
-                        </span>
-                        <input type="email" id="loginEmail" required autocomplete="off" value="" class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm font-medium" placeholder="กรอกอีเมลของคุณ">
-                    </div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">E-mail</label>
+                    <input type="email" id="loginEmail" required autocomplete="off" class="w-full px-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500 text-sm">
                 </div>
-
-                <div id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200 text-center font-medium">
-                    กรุณากรอกอีเมลให้ถูกต้อง
-                </div>
-
-                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-lg shadow-pink-600/30 transition transform active:scale-95 flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
-                </button>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-bold rounded-xl shadow-lg text-sm">เข้าสู่ระบบ</button>
             </form>
-
-            <div class="mt-6 text-center text-[11px] text-slate-400">
-                Google ID: 1OMBMLFr0rHGcRlFnfWULfd2edWeeikwFoQeX3K2YP9E
-            </div>
         </div>
     </div>
 
-    <!-- MAIN APP WRAPPER -->
+    <!-- MAIN APP -->
     <div id="app" class="min-h-full flex flex-col justify-between hidden">
         <header class="bg-slate-900/80 backdrop-blur-md border-b border-pink-500/20 sticky top-0 z-30 shadow-lg no-print">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between py-3">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-pink-600 to-rose-500 flex items-center justify-center text-white shadow-md shadow-pink-500/30 overflow-hidden border border-pink-300/30">
-                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1785518472043.jpg-F1j1Wn3LhRz6UaN6cR2fX9PqMv8W4p.jpeg" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/db2777/ffffff?text=TKP7'">
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-white text-base sm:text-xl leading-tight flex items-center gap-2">
-                            TKP7 Pro Solutions <span class="text-xs px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 font-semibold border border-pink-500/30">วงจรที่ 2</span>
-                        </h1>
-                        <p class="text-xs text-pink-200/70 flex items-center gap-1.5 mt-0.5">
-                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Google ID: <code class="bg-black/30 px-1.5 py-0.5 rounded text-[10px] text-pink-200">1OMBMLFr0rHGcRlFnfWULfd2edWeeikwFoQeX3K2YP9E</code>
-                        </p>
-                    </div>
-                </div>
+            <div class="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between py-3">
+                <h1 class="font-bold text-white text-lg">TKP7 Pro Solutions <span class="text-xs px-2 py-0.5 rounded bg-pink-500/20 text-pink-300">วงจรที่ 2</span></h1>
                 <div class="flex items-center space-x-2">
-                    <button onclick="switchTab('form')" id="nav-form" class="px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white shadow-md shadow-pink-600/30 transition flex items-center gap-2">
-                        <i class="fa-solid fa-user-plus"></i> <span class="hidden sm:inline">ลงทะเบียน</span>
-                    </button>
-                    <button onclick="switchTab('list')" id="nav-list" class="px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2">
-                        <i class="fa-solid fa-users-rectangle"></i> <span class="hidden sm:inline">รายการลูกค้า</span>
-                        <span id="badge-count" class="bg-pink-500/30 text-pink-200 text-xs px-2 py-0.5 rounded-full font-bold border border-pink-400/30">0</span>
-                    </button>
-                    <button onclick="switchTab('pricing')" id="nav-pricing" class="hidden px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2">
-                        <i class="fa-solid fa-tags"></i> <span class="hidden sm:inline">กำหนดราคาอุปกรณ์</span>
-                    </button>
-                    <button onclick="handleLogout()" class="px-3.5 py-2 text-sm font-medium rounded-xl text-rose-200 hover:bg-rose-500/20 transition flex items-center gap-1.5 ml-2 border border-rose-500/30" title="ออกจากระบบ">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">ออกจากระบบ</span>
-                    </button>
+                    <button onclick="switchTab('form')" id="nav-form" class="px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white">ลงทะเบียน</button>
+                    <button onclick="switchTab('list')" id="nav-list" class="hidden px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10">รายการลูกค้า</button>
+                    <button onclick="switchTab('pricing')" id="nav-pricing" class="hidden px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10">กำหนดราคาอุปกรณ์</button>
+                    <button onclick="handleLogout()" class="px-3.5 py-2 text-sm font-medium rounded-xl text-rose-200 hover:bg-rose-500/20"><i class="fa-solid fa-right-from-bracket"></i> ออก</button>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
-            <!-- TAB 1: REGISTRATION FORM -->
-            <div id="tab-form" class="space-y-6 no-print">
+        <main class="max-w-7xl mx-auto px-4 py-8 w-full flex-grow main-app-content">
+            <!-- TAB 1: FORM -->
+            <div id="tab-form" class="space-y-6">
                 <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="bg-gradient-to-r from-pink-700 via-rose-600 to-pink-600 px-6 py-6 text-white shadow-md">
-                        <div class="flex items-center gap-3 mb-1">
-                            <div class="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <i class="fa-solid fa-file-pen text-lg text-pink-100"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-xl font-bold">ฟอร์มบันทึกข้อมูลลูกค้าใหม่</h2>
-                                <p class="text-pink-100 text-xs sm:text-sm">กรอกรายละเอียดข้อมูลลูกค้าให้ครบถ้วนเพื่อบันทึกลงในระบบวงจรที่ 2</p>
-                            </div>
-                        </div>
+                    <div class="bg-gradient-to-r from-pink-700 to-rose-600 px-6 py-5 text-white">
+                        <h2 class="text-xl font-bold">ฟอร์มบันทึกข้อมูลลูกค้าใหม่</h2>
+                        <p class="text-pink-100 text-xs">กรอกรายละเอียดข้อมูลลูกค้าเพื่อบันทึกและพิมพ์ใบงาน</p>
                     </div>
-
-                    <form id="customerForm" onsubmit="handleFormSubmit(event)" class="p-6 sm:p-8 space-y-6">
+                    <form id="customerForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">ชื่อ - นามสกุลลูกค้า <span class="text-rose-500">*</span></label>
-                                <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
-                                        <i class="fa-solid fa-user"></i>
-                                    </span>
-                                    <input type="text" id="custName" required placeholder="เช่น สมชาย ใจดี" class="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm">
-                                </div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">ชื่อ - นามสกุลลูกค้า *</label>
+                                <input type="text" id="custName" required placeholder="สมชาย ใจดี" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                             </div>
-
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">เบอร์โทรศัพท์ติดต่อ <span class="text-rose-500">*</span></label>
-                                <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
-                                        <i class="fa-solid fa-phone"></i>
-                                    </span>
-                                    <input type="tel" id="custPhone" required placeholder="0812345678" class="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm">
-                                </div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">เบอร์โทรศัพท์ติดต่อ *</label>
+                                <input type="tel" id="custPhone" required placeholder="0812345678" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                             </div>
-
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">อีเมล (อัตโนมัติจากระบบ)</label>
-                                <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
-                                        <i class="fa-solid fa-envelope"></i>
-                                    </span>
-                                    <input type="email" id="custEmail" readonly class="w-full pl-10 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm shadow-sm text-slate-600 font-medium cursor-not-allowed">
-                                </div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">E-mail (อัตโนมัติ)</label>
+                                <input type="email" id="custEmail" readonly class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-600 font-medium">
                             </div>
-
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ผู้แนะนำ</label>
-                                <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
-                                        <i class="fa-solid fa-user-tag"></i>
-                                    </span>
-                                    <input type="text" id="custRecommender" placeholder="ระบุชื่อผู้แนะนำ (ถ้ามี)" class="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm">
-                                </div>
+                                <input type="text" id="custRecommender" placeholder="ผู้แนะนำ (ถ้ามี)" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                             </div>
-
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">แบรนด์อุปกรณ์ และ ราคา <span class="text-rose-500">*</span></label>
-                                <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
-                                        <i class="fa-solid fa-layer-group"></i>
-                                    </span>
-                                    <select id="custService" required onchange="calculateTotal()" class="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm appearance-none shadow-sm">
-                                        <option value="">-- เลือกแบรนด์อุปกรณ์ --</option>
-                                    </select>
-                                    <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-xs"></i>
-                                    </span>
-                                </div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">แบรนด์อุปกรณ์ *</label>
+                                <select id="custService" required onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
+                                    <option value="">-- เลือกแบรนด์อุปกรณ์ --</option>
+                                </select>
                             </div>
-
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภทสายไฟ (ยี่ห้อสายไฟ)</label>
-                                <select id="custWire" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-sm">
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภทสายไฟ</label>
+                                <select id="custWire" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                                     <option value="0">-- เลือกสายไฟ --</option>
                                 </select>
                             </div>
-
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ระยะสาย (เมตร)</label>
-                                <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-pink-500">
-                                        <i class="fa-solid fa-ruler"></i>
-                                    </span>
-                                    <input type="number" id="custDistanceInput" min="0" step="1" value="0" oninput="calculateTotal()" placeholder="ระบุระยะสายเป็นเมตร" class="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm font-medium">
-                                </div>
+                                <input type="number" id="custDistanceInput" min="0" value="0" oninput="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm font-medium">
                             </div>
-
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ประกัน</label>
-                                <select id="custWarranty" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-sm">
+                                <select id="custWarranty" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                                     <option value="0">-- เลือกประกัน --</option>
                                 </select>
                             </div>
                         </div>
-
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">สถานที่ติดตั้ง / ที่อยู่ลูกค้า <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <span class="absolute top-3.5 left-3.5 flex items-center pointer-events-none text-pink-500">
-                                    <i class="fa-solid fa-location-dot"></i>
-                                </span>
-                                <textarea id="custAddress" required rows="3" placeholder="ระบุเลขที่ ถนน ตำบล อำเภอ จังหวัด และรหัสไปรษณีย์" class="w-full pl-10 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm"></textarea>
-                            </div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">สถานที่ติดตั้ง / ที่อยู่ลูกค้า *</label>
+                            <textarea id="custAddress" required rows="2" placeholder="ที่อยู่สถานที่ติดตั้ง" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm"></textarea>
                         </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">หมายเหตุเพิ่มเติม</label>
-                            <input type="text" id="custNote" placeholder="ข้อกำหนดพิเศษหรือชื่อผู้ประสานงาน" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm shadow-sm">
+                        <div class="p-4 bg-pink-50 border border-pink-200 rounded-xl flex justify-between items-center">
+                            <span class="font-bold text-pink-900">ราคารวมทั้งสิ้น (Total Price)</span>
+                            <span id="displayTotalPrice" class="text-2xl font-bold text-pink-700">0.00 บาท</span>
                         </div>
-
-                        <!-- TOTAL PRICE DISPLAY BOX -->
-                        <div class="p-5 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200/80 rounded-2xl space-y-4 shadow-inner">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-xl bg-pink-600 text-white flex items-center justify-center text-xl shadow-md">
-                                        <i class="fa-solid fa-calculator"></i>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs font-bold text-pink-800 uppercase tracking-wider block">ราคารวมทั้งสิ้น (Total Price)</span>
-                                        <span class="text-xs text-slate-500">รวมราคาแพ็คเกจพื้นฐานทั้งหมดในระบบอัตโนมัติ</span>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <span id="displayTotalPrice" class="text-2xl sm:text-3xl font-bold text-pink-700">0.00</span>
-                                    <span class="text-sm font-semibold text-pink-600 ml-1">บาท</span>
-                                </div>
-                            </div>
-                            <div id="basePackagesBreakdown" class="text-xs text-slate-600 pt-3 border-t border-pink-200/60 hidden">
-                                <span class="font-bold text-pink-900 block mb-1">รายการ แพ็คเกจพื้นฐานที่รวมอยู่:</span>
-                                <div id="basePackagesList" class="flex flex-wrap gap-2"></div>
-                            </div>
-                        </div>
-
-                        <div id="singlePrintContainer" class="print-sheet p-4 bg-white text-slate-900"></div>
-
-                        <div class="flex items-center justify-between pt-4 border-t border-slate-200/60 flex-wrap gap-3">
-                            <button type="reset" onclick="setTimeout(calculateTotal, 50)" class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-white font-medium text-sm transition shadow-sm">
-                                <i class="fa-solid fa-rotate-right mr-2"></i> ล้างข้อมูล
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" onclick="printFormPreview()" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow flex items-center gap-2">
+                                <i class="fa-solid fa-print"></i> ปริ้นใบงาน
                             </button>
-                            <div class="flex items-center gap-3">
-                                <button type="button" onclick="printCurrentForm()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium text-sm shadow-md transition flex items-center gap-2">
-                                    <i class="fa-solid fa-print"></i> ปริ้นใบงาน
-                                </button>
-                                <button type="submit" id="submitBtn" class="px-8 py-3 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-medium text-sm shadow-lg shadow-pink-600/30 transition flex items-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลูกค้า
-                                </button>
-                            </div>
+                            <button type="submit" id="submitBtn" class="px-8 py-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-sm font-medium shadow flex items-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลูกค้า
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- TAB 2: CUSTOMER LIST (CUSTOMERS SEE ONLY THEIR OWN, ADMIN SEES ALL) -->
+            <!-- TAB 2: LIST -->
             <div id="tab-list" class="space-y-6 hidden">
-                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="px-6 py-5 bg-white/60 border-b border-slate-200/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว
-                            </h2>
-                            <p class="text-xs text-slate-500">ข้อมูลการใช้บริการวงจรที่ 2 ทั้งหมดในระบบ TKP7 Pro Solutions</p>
-                        </div>
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                    <i class="fa-solid fa-search text-xs"></i>
-                                </span>
-                                <input type="text" id="searchInput" oninput="filterCustomers()" placeholder="ค้นหาชื่อ หรือเบอร์โทร..." class="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 w-full sm:w-56 shadow-sm">
-                            </div>
-                            <div>
-                                <select id="statusFilter" onchange="filterCustomers()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-sm font-medium text-slate-700">
-                                    <option value="">-- ทุกสถานะติดตั้ง --</option>
-                                    <option value="งานใหม่">งานใหม่</option>
-                                    <option value="ติดตั้งแล้ว">ติดตั้งแล้ว</option>
-                                </select>
-                            </div>
-                            <button onclick="window.print()" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl text-sm transition shadow-md flex items-center gap-2 font-medium" title="สั่งปริ้นรายงาน">
-                                <i class="fa-solid fa-print"></i> ปริ้นรายการทั้งหมด
-                            </button>
-                            <button onclick="loadCustomers()" class="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-sm transition shadow-sm" title="รีเฟรชข้อมูล">
-                                <i class="fa-solid fa-rotate"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto main-table-view">
+                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 p-6">
+                    <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว</h2>
+                    <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-pink-50/75 border-b border-pink-100 text-[11px] font-bold text-pink-800 uppercase tracking-wider">
-                                    <th class="py-3.5 px-4">ชื่อลูกค้า / เบอร์โทร</th>
-                                    <th class="py-3.5 px-4">สถานะติดตั้ง</th>
-                                    <th class="py-3.5 px-4">ผู้แนะนำ</th>
-                                    <th class="py-3.5 px-4">แบรนด์อุปกรณ์</th>
-                                    <th class="py-3.5 px-4">ประเภทสายไฟ</th>
-                                    <th class="py-3.5 px-4">ระยะสาย</th>
-                                    <th class="py-3.5 px-4">ประกัน</th>
-                                    <th class="py-3.5 px-4">สถานที่ติดตั้ง</th>
-                                    <th class="py-3.5 px-4">ราคารวม</th>
-                                    <th class="py-3.5 px-4 text-center no-print">จัดการ</th>
+                                <tr class="bg-pink-50 border-b border-pink-100 text-xs font-bold text-pink-800 uppercase">
+                                    <th class="py-3 px-4">ชื่อลูกค้า / เบอร์โทร</th>
+                                    <th class="py-3 px-4">สถานะ</th>
+                                    <th class="py-3 px-4">แบรนด์อุปกรณ์</th>
+                                    <th class="py-3 px-4">ราคารวม</th>
+                                    <th class="py-3 px-4 text-center">พิมพ์ใบงาน / จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody id="customerTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
                         </table>
                     </div>
-
-                    <div id="printContainer" class="print-sheet p-4 bg-white text-slate-900"></div>
-                    
-                    <div id="emptyState" class="hidden py-16 text-center no-print">
-                        <div class="w-16 h-16 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </div>
-                        <p class="text-slate-700 font-medium">ยังไม่มีข้อมูลการลงทะเบียนในระบบ</p>
-                        <p class="text-slate-400 text-xs mt-1">เริ่มต้นบันทึกข้อมูลลูกค้าใหม่ผ่านแท็บลงทะเบียน</p>
-                    </div>
                 </div>
             </div>
 
-            <!-- TAB 3: PRICING MANAGEMENT (ADMIN ONLY) -->
-            <div id="tab-pricing" class="hidden space-y-8 no-print">
-                <!-- SECTION 1 -->
-                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="bg-gradient-to-r from-pink-700 via-rose-600 to-pink-600 px-6 py-5 text-white shadow-md flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <i class="fa-solid fa-tags text-lg text-pink-100"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold">กำหนดราคาอุปกรณ์ และวงจรที่ 2</h2>
-                                <p class="text-pink-100 text-xs">ตั้งค่าแบรนด์อุปกรณ์ ราคาแพ็คเกจ และราคาวงจร</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-6">
-                        <form onsubmit="handleSavePricing(event)" class="bg-pink-50/50 p-4 rounded-xl border border-pink-200/60 grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">แบรนด์อุปกรณ์</label>
-                                <input type="text" id="priceBrand" required placeholder="เช่น ตู้สไนเดอร์" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">แพ็คเกจพื้นฐาน (บาท)</label>
-                                <input type="number" id="priceAmount" required min="0" step="0.01" placeholder="2500" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ราคาวงจร (บาท)</label>
-                                <input type="number" id="priceCircuit" required min="0" step="0.01" placeholder="1500" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> บันทึกราคา
-                                </button>
-                            </div>
-                        </form>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-pink-50/75 border-b border-pink-100 text-[11px] font-bold text-pink-800 uppercase tracking-wider">
-                                        <th class="py-3 px-6">แบรนด์อุปกรณ์</th>
-                                        <th class="py-3 px-6">แพ็คเกจพื้นฐาน</th>
-                                        <th class="py-3 px-6">ราคาวงจร</th>
-                                        <th class="py-3 px-6">อัปเดตล่าสุด</th>
-                                        <th class="py-3 px-6 text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pricingTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 2 -->
-                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="bg-gradient-to-r from-purple-700 via-pink-600 to-rose-600 px-6 py-5 text-white shadow-md flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <i class="fa-solid fa-box-archive text-lg text-pink-100"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold">รายการ แพ็คเกจพื้นฐาน (บาท)</h2>
-                                <p class="text-pink-100 text-xs">กำหนดชื่อและราคาแพ็คเกจพื้นฐานเพิ่มเติม</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-6">
-                        <form onsubmit="handleSaveBasePackage(event)" class="bg-pink-50/50 p-4 rounded-xl border border-pink-200/60 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ชื่อแพ็คเกจพื้นฐาน</label>
-                                <input type="text" id="basePkgName" required placeholder="เช่น แพ็คเกจมาตรฐาน 1" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ราคา (บาท)</label>
-                                <input type="number" id="basePkgPrice" required min="0" step="0.01" placeholder="2500" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> บันทึกแพ็คเกจ
-                                </button>
-                            </div>
-                        </form>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-pink-50/75 border-b border-pink-100 text-[11px] font-bold text-pink-800 uppercase tracking-wider">
-                                        <th class="py-3 px-6">ชื่อแพ็คเกจพื้นฐาน</th>
-                                        <th class="py-3 px-6">ราคา (บาท)</th>
-                                        <th class="py-3 px-6">อัปเดตล่าสุด</th>
-                                        <th class="py-3 px-6 text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="basePkgTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 3 -->
-                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="bg-gradient-to-r from-rose-700 via-pink-600 to-rose-600 px-6 py-5 text-white shadow-md flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <i class="fa-solid fa-bolt text-lg text-pink-100"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold">รายการ สายไฟ และ ราคา</h2>
-                                <p class="text-pink-100 text-xs">กำหนดประเภทสายไฟและราคามาตรฐานต่อเมตร</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-6">
-                        <form onsubmit="handleSaveWirePricing(event)" class="bg-pink-50/50 p-4 rounded-xl border border-pink-200/60 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ประเภท / ขนาดสายไฟ</label>
-                                <input type="text" id="wireType" required placeholder="เช่น สายไฟ VAF 2x2.5 sq.mm." class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ราคาต่อเมตร (บาท)</label>
-                                <input type="number" id="wirePrice" required min="0" step="0.01" placeholder="50" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> บันทึกสายไฟ
-                                </button>
-                            </div>
-                        </form>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-pink-50/75 border-b border-pink-100 text-[11px] font-bold text-pink-800 uppercase tracking-wider">
-                                        <th class="py-3 px-6">ประเภท / ขนาดสายไฟ</th>
-                                        <th class="py-3 px-6">ราคาต่อเมตร (บาท)</th>
-                                        <th class="py-3 px-6">อัปเดตล่าสุด</th>
-                                        <th class="py-3 px-6 text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="wireTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 4 -->
-                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="bg-gradient-to-r from-amber-600 via-rose-600 to-pink-600 px-6 py-5 text-white shadow-md flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <i class="fa-solid fa-ruler text-lg text-pink-100"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold">รายการ ระยะสาย และ ราคา</h2>
-                                <p class="text-pink-100 text-xs">กำหนดช่วงระยะสายและราคาค่าบริการ</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-6">
-                        <form onsubmit="handleSaveDistancePricing(event)" class="bg-pink-50/50 p-4 rounded-xl border border-pink-200/60 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ระยะทาง / ช่วงสาย</label>
-                                <input type="text" id="distanceRange" required placeholder="เช่น 0 - 50 เมตร" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ราคา (บาท)</label>
-                                <input type="number" id="distancePrice" required min="0" step="0.01" placeholder="1000" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> บันทึกระยะสาย
-                                </button>
-                            </div>
-                        </form>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-pink-50/75 border-b border-pink-100 text-[11px] font-bold text-pink-800 uppercase tracking-wider">
-                                        <th class="py-3 px-6">ระยะทาง / ช่วงสาย</th>
-                                        <th class="py-3 px-6">ราคา (บาท)</th>
-                                        <th class="py-3 px-6">อัปเดตล่าสุด</th>
-                                        <th class="py-3 px-6 text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="distanceTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 5 -->
-                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="bg-gradient-to-r from-emerald-700 via-teal-600 to-cyan-600 px-6 py-5 text-white shadow-md flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <i class="fa-solid fa-shield-halved text-lg text-pink-100"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold">รายการ ประกัน และ ราคา</h2>
-                                <p class="text-pink-100 text-xs">กำหนดเงื่อนไขการประกันและราคา</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-6">
-                        <form onsubmit="handleSaveWarrantyPricing(event)" class="bg-pink-50/50 p-4 rounded-xl border border-pink-200/60 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ประเภทประกัน / ระยะเวลา</label>
-                                <input type="text" id="warrantyType" required placeholder="เช่น ประกันเพิ่ม 1 ปี" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase">ราคา (บาท)</label>
-                                <input type="number" id="warrantyPrice" required min="0" step="0.01" placeholder="1200" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium">
-                            </div>
-                            <div>
-                                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> บันทึกประกัน
-                                </button>
-                            </div>
-                        </form>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-pink-50/75 border-b border-pink-100 text-[11px] font-bold text-pink-800 uppercase tracking-wider">
-                                        <th class="py-3 px-6">ประเภทประกัน / ระยะเวลา</th>
-                                        <th class="py-3 px-6">ราคา (บาท)</th>
-                                        <th class="py-3 px-6">อัปเดตล่าสุด</th>
-                                        <th class="py-3 px-6 text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="warrantyTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
+            <!-- TAB 3: PRICING -->
+            <div id="tab-pricing" class="hidden space-y-6">
+                <div class="glass-card rounded-2xl p-6 border border-pink-200">
+                    <h2 class="text-lg font-bold mb-4">กำหนดราคาอุปกรณ์</h2>
+                    <form onsubmit="handleSavePricing(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                        <input type="text" id="priceBrand" required placeholder="แบรนด์อุปกรณ์" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="priceAmount" required placeholder="แพ็คเกจพื้นฐาน" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="priceCircuit" required placeholder="ราคาวงจร" class="px-3 py-2 border rounded-xl text-sm">
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold">บันทึกราคา</button>
+                    </form>
                 </div>
             </div>
         </main>
 
-        <footer class="bg-slate-900/90 border-t border-pink-500/20 py-4 mt-8 backdrop-blur-md no-print">
-            <div class="max-w-7xl mx-auto px-4 text-center text-xs text-pink-200/70">
-                TKP7 Pro Solutions • ระบบจัดการข้อมูลลูกค้าวงจรที่ 2 • Google ID: 1OMBMLFr0rHGcRlFnfWULfd2edWeeikwFoQeX3K2YP9E
-            </div>
-        </footer>
+        <!-- พิมพ์ใบงาน (ซ่อนปกติ จะแสดงเฉพาะตอนสั่งพิมพ์) -->
+        <div id="printContainer" class="print-sheet"></div>
     </div>
 
-    <!-- Custom Modal -->
-    <div id="customModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center space-y-4 border border-pink-100">
-            <div id="modalIcon" class="w-14 h-14 rounded-full flex items-center justify-center mx-auto text-2xl bg-pink-100 text-pink-600">
-                <i class="fa-solid fa-check"></i>
-            </div>
-            <div>
-                <h3 id="modalTitle" class="text-lg font-bold text-slate-900">สำเร็จ</h3>
-                <p id="modalMessage" class="text-sm text-slate-600 mt-1">ขอบคุณที่ใช้บริการ รอแอดมินติดต่อกลับนะค่ะ</p>
-            </div>
-            <button onclick="closeModal()" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white rounded-xl font-medium text-sm transition shadow-md">
-                ตกลง
-            </button>
+    <!-- Modal แจ้งเตือน -->
+    <div id="customModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden no-print">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-3">
+            <h3 id="modalTitle" class="text-lg font-bold">สำเร็จ</h3>
+            <p id="modalMessage" class="text-sm text-slate-600">บันทึกข้อมูลเรียบร้อยแล้ว</p>
+            <button onclick="closeModal()" class="w-full py-2 bg-pink-600 text-white rounded-xl">ตกลง</button>
         </div>
     </div>
 
-    <!-- Application Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'tkp7-circuit2-app';
-        const googleIdContext = '1OMBMLFr0rHGcRlFnfWULfd2edWeeikwFoQeX3K2YP9E';
-        
         const firebaseConfig = {
             apiKey: "AIzaSyAMGnd8SAeLeEjSC7jYHjthLxvrhVhyaK0",
             authDomain: "tkp7-pro.firebaseapp.com",
             projectId: "tkp7-pro",
             storageBucket: "tkp7-pro.firebasestorage.app",
             messagingSenderId: "297986344649",
-            appId: "1:297986344649:web:df93a1ddaa6887488b6f18",
-            measurementId: "G-9YFBQ5BCXD"
+            appId: "1:297986344649:web:df93a1ddaa6887488b6f18"
         };
 
-        let db = null;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         let allCustomers = [];
-        let allPricing = [];
-        let allBasePkgPricing = [];
-        let allWirePricing = [];
-        let allDistancePricing = [];
-        let allWarrantyPricing = [];
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('tkp7_logged_in') === 'true') {
                 unlockApp();
             }
-
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                const auth = getAuth(app);
-                await signInAnonymously(auth);
-            } catch (err) {
-                console.error("Firebase init error:", err);
-            }
-            populateFormDropdowns();
         });
 
-        window.handleLogin = function(event) {
-            event.preventDefault();
+        window.handleLogin = (e) => {
+            e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const errorBox = document.getElementById('loginError');
-
-            if (email) {
-                errorBox.classList.add('hidden');
-                sessionStorage.setItem('tkp7_logged_in', 'true');
-                sessionStorage.setItem('tkp7_user_email', email);
-                
-                if (email === 'tanthaizero@gmail.com') {
-                    sessionStorage.setItem('tkp7_user_role', 'admin');
-                } else {
-                    sessionStorage.setItem('tkp7_user_role', 'customer');
-                }
-
-                unlockApp();
+            sessionStorage.setItem('tkp7_logged_in', 'true');
+            sessionStorage.setItem('tkp7_user_email', email);
+            if (email === 'tanthaizero@gmail.com') {
+                sessionStorage.setItem('tkp7_user_role', 'admin');
             } else {
-                errorBox.classList.remove('hidden');
+                sessionStorage.setItem('tkp7_user_role', 'customer');
             }
+            unlockApp();
         };
 
         function unlockApp() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
+            document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
             
-            // ดึงอีเมลมาแสดงในฟอร์มลงทะเบียนอัตโนมัติ
-            const userEmail = sessionStorage.getItem('tkp7_user_email');
-            const emailField = document.getElementById('custEmail');
-            if (emailField) emailField.value = userEmail || '';
-
             const role = sessionStorage.getItem('tkp7_user_role');
-            const navList = document.getElementById('nav-list');
-            const navPricing = document.getElementById('nav-pricing');
-
             if (role === 'admin') {
-                if (navList) navList.classList.remove('hidden');
-                if (navPricing) navPricing.classList.remove('hidden');
-                loadCustomers();
+                document.getElementById('nav-pricing').classList.remove('hidden');
                 loadPricing();
-                loadBasePkgPricing();
-                loadWirePricing();
-                loadDistancePricing();
-                loadWarrantyPricing();
-            } else {
-                // ลูกค้าทั่วไปก็ให้เห็นเมนูรายการลูกค้าได้ เพื่อดูเฉพาะของตัวเอง
-                if (navList) navList.classList.remove('hidden');
-                if (navPricing) navPricing.classList.add('hidden');
-                loadCustomers();
             }
+            document.getElementById('nav-list').classList.remove('hidden');
+            loadCustomers();
             populateFormDropdowns();
         }
 
-        window.handleLogout = function() {
-            sessionStorage.clear();
-            document.getElementById('app').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('loginEmail').value = '';
+        window.handleLogout = () => { sessionStorage.clear(); location.reload(); };
+
+        window.switchTab = (tab) => {
+            ['form', 'list', 'pricing'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            if (tab === 'list') loadCustomers();
         };
 
-        window.switchTab = function(tabName) {
-            const role = sessionStorage.getItem('tkp7_user_role');
-            if (tabName === 'pricing' && role !== 'admin') return;
-
-            const formTab = document.getElementById('tab-form');
-            const listTab = document.getElementById('tab-list');
-            const pricingTab = document.getElementById('tab-pricing');
-            
-            const navForm = document.getElementById('nav-form');
-            const nodeList = document.getElementById('nav-list');
-            const nodePricing = document.getElementById('nav-pricing');
-
-            if (formTab) formTab.classList.add('hidden');
-            if (listTab) listTab.classList.add('hidden');
-            if (pricingTab) pricingTab.classList.add('hidden');
-            
-            if (navForm) navForm.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
-            if (nodeList) nodeList.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
-            if (role === 'admin' && nodePricing) {
-                nodePricing.className = "px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10 transition flex items-center gap-2";
-            }
-
-            if (tabName === 'form') {
-                if (formTab) formTab.classList.remove('hidden');
-                if (navForm) navForm.className = "px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white shadow-md shadow-pink-600/30 transition flex items-center gap-2";
-                populateFormDropdowns();
-            } else if (tabName === 'list') {
-                if (listTab) listTab.classList.remove('hidden');
-                if (nodeList) nodeList.className = "px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white shadow-md shadow-pink-600/30 transition flex items-center gap-2";
-                loadCustomers();
-            } else if (tabName === 'pricing' && role === 'admin') {
-                if (pricingTab) pricingTab.classList.remove('hidden');
-                if (nodePricing) nodePricing.className = "px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white shadow-md shadow-pink-600/30 transition flex items-center gap-2";
-                loadPricing();
-                loadBasePkgPricing();
-                loadWirePricing();
-                loadDistancePricing();
-                loadWarrantyPricing();
-            }
+        window.showModal = (title, msg) => {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = msg;
+            document.getElementById('customModal').classList.remove('hidden');
         };
-
-        window.showModal = function(title, message, isSuccess = true) {
-            const modal = document.getElementById('customModal');
-            const icon = document.getElementById('modalIcon');
-            const titleEl = document.getElementById('modalTitle');
-            const msgEl = document.getElementById('modalMessage');
-
-            if (titleEl) titleEl.textContent = title;
-            if (msgEl) msgEl.textContent = message;
-
-            if (icon) {
-                if (isSuccess) {
-                    icon.className = "w-14 h-14 rounded-full flex items-center justify-center mx-auto text-2xl bg-pink-100 text-pink-600";
-                    icon.innerHTML = '<i class="fa-solid fa-check"></i>';
-                } else {
-                    icon.className = "w-14 h-14 rounded-full flex items-center justify-center mx-auto text-2xl bg-rose-100 text-rose-600";
-                    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
-                }
-            }
-            if (modal) modal.classList.remove('hidden');
-        };
-
-        window.closeModal = function() {
-            const modal = document.getElementById('customModal');
-            if (modal) modal.classList.add('hidden');
-        };
+        window.closeModal = () => document.getElementById('customModal').classList.add('hidden');
 
         async function populateFormDropdowns() {
             try {
-                let attempts = 0;
-                while (!db && attempts < 10) {
-                    await new Promise(r => setTimeout(r, 200));
-                    attempts++;
-                }
-
-                let basePkgs = [], wires = [], distances = [], warranties = [], equipmentPrices = [];
-                if (db) {
-                    const snap1 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing'));
-                    snap1.forEach(d => basePkgs.push(d.data()));
-                    const snap2 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
-                    snap2.forEach(d => wires.push(d.data()));
-                    const snap3 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
-                    snap3.forEach(d => distances.push(d.data()));
-                    const snap4 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list'));
-                    snap4.forEach(d => warranties.push(d.data()));
-                    const snap5 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
-                    snap5.forEach(d => equipmentPrices.push(d.data()));
-                }
-                allBasePkgPricing = basePkgs;
-
-                const serviceSelect = document.getElementById('custService');
-                if (serviceSelect) {
-                    let currentVal = serviceSelect.value;
-                    let html = '<option value="">-- เลือกแบรนด์อุปกรณ์ --</option>';
-                    equipmentPrices.forEach(item => {
-                        const sumPrice = (parseFloat(item.amount) || 0) + (parseFloat(item.circuitPrice) || 0);
-                        const label = `${item.brand} (${sumPrice.toLocaleString()} ฿)`;
-                        html += `<option value="${escapeHtml(item.brand)}" data-price="${sumPrice}">${escapeHtml(label)}</option>`;
-                    });
-                    serviceSelect.innerHTML = html;
-                    serviceSelect.value = currentVal;
-                }
-
-                const wireSelect = document.getElementById('custWire');
-                if (wireSelect) {
-                    let html = '<option value="0">-- เลือกสายไฟ --</option>';
-                    wires.forEach(w => {
-                        html += `<option value="${w.wirePrice}" data-name="${escapeHtml(w.wireType)}">${escapeHtml(w.wireType)} (${w.wirePrice.toLocaleString()} ฿ / เมตร)</option>`;
-                    });
-                    wireSelect.innerHTML = html;
-                }
-
-                const warSelect = document.getElementById('custWarranty');
-                if (warSelect) {
-                    let html = '<option value="0">-- เลือกประกัน --</option>';
-                    warranties.forEach(w => {
-                        html += `<option value="${w.warrantyPrice}" data-name="${escapeHtml(w.warrantyType)}">${escapeHtml(w.warrantyType)} (${w.warrantyPrice.toLocaleString()} ฿)</option>`;
-                    });
-                    warSelect.innerHTML = html;
-                }
-                calculateTotal();
-            } catch (err) {
-                console.error("Error populating dropdowns:", err);
-            }
+                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
+                let html = '<option value="">-- เลือกแบรนด์อุปกรณ์ --</option>';
+                snap.forEach(d => {
+                    const item = d.data();
+                    const sumPrice = (parseFloat(item.amount) || 0) + (parseFloat(item.circuitPrice) || 0);
+                    html += `<option value="${item.brand}" data-price="${sumPrice}">${item.brand} (${sumPrice.toLocaleString()} ฿)</option>`;
+                });
+                document.getElementById('custService').innerHTML = html;
+            } catch (err) { console.error(err); }
         }
 
-        window.calculateTotal = async function() {
+        window.calculateTotal = () => {
             let total = 0;
-            const serviceSelect = document.getElementById('custService');
-            const wireSelect = document.getElementById('custWire');
-            const wirePricePerMeter = parseFloat(wireSelect.value) || 0;
-            const inputDistance = parseFloat(document.getElementById('custDistanceInput').value) || 0;
-            const warVal = parseFloat(document.getElementById('custWarranty').value) || 0;
-
-            let basePkgs = [];
-            if (db) {
-                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing'));
-                snap.forEach(d => basePkgs.push(d.data()));
+            const service = document.getElementById('custService');
+            if (service.selectedIndex > 0) {
+                total += parseFloat(service.options[service.selectedIndex].getAttribute('data-price')) || 0;
             }
-
-            let basePkgSum = 0;
-            let basePkgNamesHtml = '';
-            basePkgs.forEach(p => {
-                const pVal = parseFloat(p.pkgPrice) || 0;
-                basePkgSum += pVal;
-                basePkgNamesHtml += `<span class="bg-white/80 px-2 py-1 rounded border border-pink-200 text-pink-800 font-medium">${escapeHtml(p.pkgName)}: ${pVal.toLocaleString()} ฿</span>`;
-            });
-
-            const breakdownEl = document.getElementById('basePackagesBreakdown');
-            const listEl = document.getElementById('basePackagesList');
-            if (basePkgs.length > 0) {
-                if (breakdownEl) breakdownEl.classList.remove('hidden');
-                if (listEl) listEl.innerHTML = basePkgNamesHtml;
-            } else {
-                if (breakdownEl) breakdownEl.classList.add('hidden');
-            }
-
-            let includedDistanceLimit = 0;
-            try {
-                let distList = [];
-                if (db) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
-                    snap.forEach(d => distList.push(d.data()));
-                }
-                distList.forEach(d => {
-                    const nums = d.range.match(/\d+/g);
-                    if (nums && nums.length > 0) {
-                        const maxVal = parseInt(nums[nums.length - 1], 10);
-                        if (maxVal > includedDistanceLimit) includedDistanceLimit = maxVal;
-                    }
-                });
-            } catch (e) {
-                console.error("Distance limit parse error:", e);
-            }
-
-            let distanceCharge = 0;
-            if (inputDistance > includedDistanceLimit && includedDistanceLimit > 0) {
-                distanceCharge = (inputDistance - includedDistanceLimit) * wirePricePerMeter;
-            } else if (includedDistanceLimit === 0 && inputDistance > 0) {
-                distanceCharge = inputDistance * wirePricePerMeter;
-            }
-
-            total += basePkgSum + distanceCharge + warVal;
-            if (serviceSelect && serviceSelect.selectedIndex > 0) {
-                const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
-                total += parseFloat(selectedOpt.getAttribute('data-price')) || 0;
-            }
-
-            const display = document.getElementById('displayTotalPrice');
-            if (display) display.textContent = total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const dist = parseFloat(document.getElementById('custDistanceInput').value) || 0;
+            total += dist * 50; // สมมติค่าสายไฟเมตรละ 50 บาท
+            document.getElementById('displayTotalPrice').textContent = total.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + ' บาท';
             return total;
         };
 
-        window.handleFormSubmit = async function(event) {
-            event.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
-            }
+        window.handleFormSubmit = async (e) => {
+            e.preventDefault();
+            const totalPrice = calculateTotal();
+            const serviceSelect = document.getElementById('custService');
+            
+            const newCustomer = {
+                name: document.getElementById('custName').value.trim(),
+                phone: document.getElementById('custPhone').value.trim(),
+                email: sessionStorage.getItem('tkp7_user_email'),
+                recommender: document.getElementById('custRecommender').value.trim() || '-',
+                service: serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : '-',
+                wireBrand: 'THW THAIUNEY',
+                distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
+                warranty: '1 ปี',
+                address: document.getElementById('custAddress').value.trim(),
+                totalPrice: totalPrice,
+                installStatus: 'งานใหม่',
+                createdAt: new Date().toISOString()
+            };
 
-            try {
-                const totalPrice = await calculateTotal();
-                const serviceSelect = document.getElementById('custService');
-                const serviceText = serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : serviceSelect.value;
-                const wireSelect = document.getElementById('custWire');
-                const wireText = wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-';
-                const warSelect = document.getElementById('custWarranty');
-                const warrantyText = warSelect.options[warSelect.selectedIndex] && warSelect.selectedIndex > 0 ? warSelect.options[warSelect.selectedIndex].getAttribute('data-name') : '-';
-
-                const userEmail = sessionStorage.getItem('tkp7_user_email') || document.getElementById('custEmail').value.trim();
-
-                const newCustomer = {
-                    name: document.getElementById('custName').value.trim(),
-                    phone: document.getElementById('custPhone').value.trim(),
-                    email: userEmail,
-                    recommender: document.getElementById('custRecommender').value.trim() || '-',
-                    service: serviceText,
-                    installStatus: 'งานใหม่',
-                    wireBrand: wireText,
-                    warranty: warrantyText,
-                    distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
-                    address: document.getElementById('custAddress').value.trim(),
-                    note: document.getElementById('custNote').value.trim() || '-',
-                    totalPrice: totalPrice,
-                    googleId: googleIdContext,
-                    createdAt: new Date().toISOString()
-                };
-
-                if (db) {
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), newCustomer);
-                }
-                document.getElementById('customerForm').reset();
-                document.getElementById('custDistanceInput').value = '0';
-                document.getElementById('custEmail').value = userEmail; // คงค่าอีเมลไว้เหมือนเดิม
-                calculateTotal();
-                showModal('บันทึกสำเร็จ!', 'ขอบคุณที่ใช้บริการ รอแอดมินติดต่อกลับนะค่ะ', true);
-                loadCustomers();
-            } catch (error) {
-                console.error("Error saving customer:", error);
-                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', false);
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลูกค้า';
-                }
-            }
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), newCustomer);
+            showModal('บันทึกสำเร็จ!', 'ข้อมูลลูกค้าถูกบันทึกลงระบบเรียบร้อย');
+            document.getElementById('customerForm').reset();
+            document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
+            loadCustomers();
         };
 
-        window.updateInstallStatus = async function(customerId, newStatus) {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            try {
-                const cust = allCustomers.find(c => c.id === customerId);
-                if (cust) cust.installStatus = newStatus;
-                if (db) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', customerId), { installStatus: newStatus });
+        window.loadCustomers = async () => {
+            const role = sessionStorage.getItem('tkp7_user_role');
+            const userEmail = sessionStorage.getItem('tkp7_user_email');
+            let list = [];
+            const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'));
+            snap.forEach(d => {
+                const data = d.data();
+                if (role === 'admin' || data.email === userEmail) {
+                    list.push({ id: d.id, ...data });
                 }
-            } catch (err) {
-                console.error("Error updating install status:", err);
-            }
+            });
+            list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            allCustomers = list;
+            
+            const tbody = document.getElementById('customerTableBody');
+            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            list.forEach(cust => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="py-3 px-4 font-semibold">${escapeHtml(cust.name)}<br><span class="text-xs text-slate-500">${escapeHtml(cust.phone)}</span></td>
+                        <td class="py-3 px-4"><span class="px-2 py-1 rounded text-xs bg-amber-50 text-amber-800 border border-amber-200">${cust.installStatus}</span></td>
+                        <td class="py-3 px-4">${escapeHtml(cust.service)}</td>
+                        <td class="py-3 px-4 font-bold text-pink-700">${Number(cust.totalPrice).toLocaleString()} ฿</td>
+                        <td class="py-3 px-4 text-center space-x-2">
+                            <button onclick="printSpecificCustomer('${cust.id}')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium"><i class="fa-solid fa-print"></i> พิมพ์</button>
+                            ${role === 'admin' ? `<button onclick="deleteCust('${cust.id}')" class="px-2 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </td>
+                    </tr>`;
+            });
         };
 
-        window.printCurrentForm = async function() {
+        window.printFormPreview = () => {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            if (!name || !phone) {
+                showModal('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อและเบอร์โทรศัพท์ก่อนพิมพ์ใบงาน');
+                return;
+            }
+            const tempCust = {
+                name: name,
+                phone: phone,
+                installStatus: 'งานใหม่',
+                address: document.getElementById('custAddress').value.trim() || '-',
+                service: document.getElementById('custService').value || '-',
+                distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
+                wireBrand: 'THW THAIUNEY',
+                warranty: '1 ปี',
+                totalPrice: calculateTotal()
+            };
+            generatePrintHTML(tempCust);
             window.print();
         };
 
-        // --- โหลดข้อมูลลูกค้า (กรองเฉพาะของตัวเอง หรือทั้งหมดถ้าเป็น Admin) ---
-        window.loadCustomers = async function() {
-            const role = sessionStorage.getItem('tkp7_user_role');
-            const userEmail = sessionStorage.getItem('tkp7_user_email');
-
-            let customers = [];
-            try {
-                if (db) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'));
-                    snap.forEach(d => {
-                        const data = d.data();
-                        if (role === 'admin' || data.email === userEmail) {
-                            customers.push({ id: d.id, ...data });
-                        }
-                    });
-                }
-            } catch (err) {
-                customers = [];
+        window.printSpecificCustomer = (id) => {
+            const cust = allCustomers.find(c => c.id === id);
+            if (cust) {
+                generatePrintHTML(cust);
+                window.print();
             }
-            customers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            allCustomers = customers;
-            filterCustomers();
-            const badge = document.getElementById('badge-count');
-            if (badge) badge.textContent = allCustomers.length;
         };
 
-        function renderCustomerTable(data) {
-            const tbody = document.getElementById('customerTableBody');
-            const emptyState = document.getElementById('emptyState');
-            const role = sessionStorage.getItem('tkp7_user_role');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            if (data.length === 0) {
-                if (emptyState) emptyState.classList.remove('hidden');
-                return;
-            } else {
-                if (emptyState) emptyState.classList.add('hidden');
-            }
-            data.forEach(cust => {
-                const formattedTotal = cust.totalPrice ? Number(cust.totalPrice).toLocaleString('th-TH', { minimumFractionDigits: 2 }) : '-';
-                const currentStatus = cust.installStatus || 'งานใหม่';
-                
-                // ถ้าเป็น Admin ให้เปลี่ยนสถานะได้ ถ้าเป็นลูกค้าให้แสดงสถานะอย่างเดียว
-                const statusHtml = role === 'admin' ? 
-                    `<select onchange="updateInstallStatus('${cust.id}', this.value)" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold border ${currentStatus === 'ติดตั้งแล้ว' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'}"><option value="งานใหม่" ${currentStatus === 'งานใหม่' ? 'selected' : ''}>งานใหม่</option><option value="ติดตั้งแล้ว" ${currentStatus === 'ติดตั้งแล้ว' ? 'selected' : ''}>ติดตั้งแล้ว</option></select>` :
-                    `<span class="px-2.5 py-1.5 rounded-xl text-xs font-semibold border ${currentStatus === 'ติดตั้งแล้ว' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'}">${currentStatus}</span>`;
+        function generatePrintHTML(cust) {
+            const nowStr = new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' });
+            const html = `
+                <div style="font-family: 'Prompt', sans-serif; color: #000; padding: 20px; max-width: 800px; margin: auto;">
+                    <div style="text-align: center; border-bottom: 2px solid #db2777; padding-bottom: 10px; margin-bottom: 20px;">
+                        <h2 style="font-size: 24px; font-weight: bold; margin: 0; color: #1e293b;">TKP7 Pro Solutions</h2>
+                        <p style="font-size: 14px; font-weight: bold; color: #db2777; margin: 5px 0 0;">ใบรายละเอียดการติดตั้งวงจรที่ 2</p>
+                        <p style="font-size: 11px; color: #64748b; margin: 2px 0 0;">วันที่ออกเอกสาร: ${nowStr}</p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
+                        <div><strong>ชื่อลูกค้า:</strong> ${escapeHtml(cust.name)}</div>
+                        <div><strong>เบอร์โทร:</strong> ${escapeHtml(cust.phone)}</div>
+                    </div>
+                    <div style="margin-bottom: 10px; font-size: 13px;"><strong>สถานะติดตั้ง:</strong> ${escapeHtml(cust.installStatus || 'งานใหม่')}</div>
+                    <div style="margin-bottom: 20px; font-size: 13px;"><strong>ที่อยู่:</strong> ${escapeHtml(cust.address)}</div>
+                    
+                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">หัวข้ออุปกรณ์ที่ลูกค้าได้รับ</div>
+                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ แบรนด์อุปกรณ์:</span> <strong>${escapeHtml(cust.service)}</strong></div>
+                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ ระยะสาย:</span> <strong>${escapeHtml(cust.distance)}</strong></div>
+                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ ประเภทสายไฟ:</span> <strong>${escapeHtml(cust.wireBrand || 'THW')}</strong></div>
+                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ ประกัน:</span> <strong>${escapeHtml(cust.warranty || '1 ปี')}</strong></div>
+                    </div>
 
-                // ปุ่มลบ: แสดงเฉพาะ Admin เท่านั้น ลูกค้าทั่วไปไม่มีสิทธิ์ลบ
-                const actionHtml = role === 'admin' ? 
-                    `<button onclick="deleteCustomer('${cust.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : 
-                    `<span class="text-xs text-slate-400">ไม่มีสิทธิ์ลบ</span>`;
+                    <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                        <span style="font-size: 16px; font-weight: bold; color: #831843;">ราคารวมทั้งสิ้นสุทธิ</span>
+                        <span style="font-size: 20px; font-weight: bold; color: #db2777;">${Number(cust.totalPrice).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท</span>
+                    </div>
 
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-pink-50/50 transition";
-                tr.innerHTML = `
-                    <td class="py-4 px-4"><div class="font-semibold text-slate-900">${escapeHtml(cust.name)}</div><div class="text-xs text-slate-500">${escapeHtml(cust.phone)} (${escapeHtml(cust.email)})</div></td>
-                    <td class="py-4 px-4">${statusHtml}</td>
-                    <td class="py-4 px-4 text-xs font-medium text-slate-700">${escapeHtml(cust.recommender || '-')}</td>
-                    <td class="py-4 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-pink-100 text-pink-800">${escapeHtml(cust.service)}</span></td>
-                    <td class="py-4 px-4 text-xs text-slate-700">${escapeHtml(cust.wireBrand || '-')}</td>
-                    <td class="py-4 px-4 text-xs text-slate-700">${escapeHtml(cust.distance || '-')}</td>
-                    <td class="py-4 px-4 text-xs text-slate-700">${escapeHtml(cust.warranty || '-')}</td>
-                    <td class="py-4 px-4"><div class="text-slate-700 text-xs truncate max-w-xs">${escapeHtml(cust.address)}</div></td>
-                    <td class="py-4 px-4 text-pink-700 font-bold">${formattedTotal} ฿</td>
-                    <td class="py-4 px-4 text-center no-print">${actionHtml}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+                    <div style="display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; text-align: center;">
+                        <div style="width: 45%;">
+                            <div style="border-bottom: 1px solid #000; margin-bottom: 5px; height: 30px;"></div>
+                            <div>(ลงชื่อ)........................................... ผู้ให้บริการ</div>
+                        </div>
+                        <div style="width: 45%;">
+                            <div style="border-bottom: 1px solid #000; margin-bottom: 5px; height: 30px;"></div>
+                            <div>(ลงชื่อ)........................................... ลูกค้าผู้รับบริการ</div>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('printContainer').innerHTML = html;
         }
 
-        window.filterCustomers = function() {
-            const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
-            const statusVal = document.getElementById('statusFilter')?.value || '';
-            const filtered = allCustomers.filter(c => {
-                const matchesSearch = c.name.toLowerCase().includes(query) || c.phone.includes(query) || c.service.toLowerCase().includes(query);
-                const matchesStatus = !statusVal || (c.installStatus || 'งานใหม่') === statusVal;
-                return matchesSearch && matchesStatus;
-            });
-            renderCustomerTable(filtered);
-        };
-
-        window.deleteCustomer = async function(id) {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            if (!confirm("คุณต้องการลบข้อมูลลูกค้ารายนี้ใช่หรือไม่?")) return;
-            try {
-                if (db) {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id));
-                }
+        window.deleteCust = async (id) => {
+            if (confirm("ต้องการลบข้อมูลนี้ใช่หรือไม่?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id));
                 loadCustomers();
-            } catch (err) {
-                console.error("Error deleting:", err);
             }
         };
 
-        // --- PRICING & MANAGEMENT SAVE & LOAD FUNCTIONS (ADMIN ONLY) ---
-        window.handleSavePricing = async function(event) {
-            event.preventDefault();
-            try {
-                const brand = document.getElementById('priceBrand').value.trim();
-                const itemKeyId = brand.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
-                const item = {
-                    id: itemKeyId,
-                    brand: brand,
-                    amount: parseFloat(document.getElementById('priceAmount').value),
-                    circuitPrice: parseFloat(document.getElementById('priceCircuit').value),
-                    updatedAt: new Date().toISOString()
-                };
-                if (db) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', itemKeyId), item);
-                }
-                document.getElementById('priceBrand').value = '';
-                document.getElementById('priceAmount').value = '';
-                document.getElementById('priceCircuit').value = '';
-                await loadPricing();
-                populateFormDropdowns();
-                showModal('บันทึกสำเร็จ', 'บันทึกราคาอุปกรณ์เรียบร้อยแล้ว', true);
-            } catch (err) {
-                console.error("Save pricing error:", err);
-                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกราคาได้', false);
-            }
-        };
-
-        window.loadPricing = async function() {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            let list = [];
-            try {
-                if (db) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
-                    snap.forEach(d => list.push(d.data()));
-                }
-            } catch (err) { list = []; }
-            allPricing = list;
-            const tbody = document.getElementById('pricingTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
-            list.forEach(item => {
-                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
-                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.brand)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.amount} ฿</td><td class="py-3 px-6 text-pink-700 font-bold">${item.circuitPrice} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deletePricingItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        window.handleSavePricing = async (e) => {
+            e.preventDefault();
+            const brand = document.getElementById('priceBrand').value.trim();
+            const id = brand.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', id), {
+                id, brand, amount: parseFloat(document.getElementById('priceAmount').value), circuitPrice: parseFloat(document.getElementById('priceCircuit').value), updatedAt: new Date().toISOString()
             });
+            showModal('บันทึกสำเร็จ', 'บันทึกราคาเรียบร้อย');
+            e.target.reset();
+            populateFormDropdowns();
         };
 
-        window.deletePricingItem = async function(id) {
-            try {
-                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic', id));
-                await loadPricing();
-                populateFormDropdowns();
-            } catch (err) { console.error("Delete error:", err); }
-        };
-
-        window.handleSaveBasePackage = async function(event) {
-            event.preventDefault();
-            try {
-                const pkgName = document.getElementById('basePkgName').value.trim();
-                const pkgKeyId = pkgName.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
-                const item = {
-                    id: pkgKeyId,
-                    pkgName: pkgName,
-                    pkgPrice: parseFloat(document.getElementById('basePkgPrice').value),
-                    updatedAt: new Date().toISOString()
-                };
-                if (db) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing', pkgKeyId), item);
-                }
-                document.getElementById('basePkgName').value = '';
-                document.getElementById('basePkgPrice').value = '';
-                await loadBasePkgPricing();
-                populateFormDropdowns();
-                showModal('บันทึกสำเร็จ', 'บันทึกแพ็คเกจพื้นฐานเรียบร้อยแล้ว', true);
-            } catch (err) {
-                console.error("Save base pkg error:", err);
-                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกแพ็คเกจได้', false);
-            }
-        };
-
-        window.loadBasePkgPricing = async function() {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            let list = [];
-            try {
-                if (db) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing'));
-                    snap.forEach(d => list.push(d.data()));
-                }
-            } catch (err) { list = []; }
-            const tbody = document.getElementById('basePkgTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
-            list.forEach(item => {
-                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
-                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.pkgName)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.pkgPrice} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteBasePkgItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-            });
-        };
-
-        window.deleteBasePkgItem = async function(id) {
-            try {
-                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing', id));
-                await loadBasePkgPricing();
-                populateFormDropdowns();
-            } catch (err) { console.error("Delete error:", err); }
-        };
-
-        window.handleSaveWirePricing = async function(event) {
-            event.preventDefault();
-            try {
-                const wireType = document.getElementById('wireType').value.trim();
-                const wireKeyId = wireType.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
-                const item = {
-                    id: wireKeyId,
-                    wireType: wireType,
-                    wirePrice: parseFloat(document.getElementById('wirePrice').value),
-                    updatedAt: new Date().toISOString()
-                };
-                if (db) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list', wireKeyId), item);
-                }
-                document.getElementById('wireType').value = '';
-                document.getElementById('wirePrice').value = '';
-                await loadWirePricing();
-                populateFormDropdowns();
-                showModal('บันทึกสำเร็จ', 'บันทึกสายไฟเรียบร้อยแล้ว', true);
-            } catch (err) {
-                console.error("Save wire error:", err);
-                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกสายไฟได้', false);
-            }
-        };
-
-        window.loadWirePricing = async function() {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            let list = [];
-            try {
-                if (db) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
-                    snap.forEach(d => list.push(d.data()));
-                }
-            } catch (err) { list = []; }
-            const tbody = document.getElementById('wireTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
-            list.forEach(item => {
-                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
-                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.wireType)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.wirePrice} ฿/เมตร</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteWireItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-            });
-        };
-
-        window.deleteWireItem = async function(id) {
-            try {
-                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list', id));
-                await loadWirePricing();
-                populateFormDropdowns();
-            } catch (err) { console.error("Delete error:", err); }
-        };
-
-        window.handleSaveDistancePricing = async function(event) {
-            event.preventDefault();
-            try {
-                const range = document.getElementById('distanceRange').value.trim();
-                const distKeyId = range.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
-                const item = {
-                    id: distKeyId,
-                    range: range,
-                    price: parseFloat(document.getElementById('distancePrice').value),
-                    updatedAt: new Date().toISOString()
-                };
-                if (db) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list', distKeyId), item);
-                }
-                document.getElementById('distanceRange').value = '';
-                document.getElementById('distancePrice').value = '';
-                await loadDistancePricing();
-                showModal('บันทึกสำเร็จ', 'บันทึกระยะสายเรียบร้อยแล้ว', true);
-            } catch (err) {
-                console.error("Save distance error:", err);
-                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกระยะสายได้', false);
-            }
-        };
-
-        window.loadDistancePricing = async function() {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            let list = [];
-            try {
-                if (db) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
-                    snap.forEach(d => list.push(d.data()));
-                }
-            } catch (err) { list = []; }
-            const tbody = document.getElementById('distanceTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
-            list.forEach(item => {
-                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
-                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.range)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.price} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteDistanceItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-            });
-        };
-
-        window.deleteDistanceItem = async function(id) {
-            try {
-                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list', id));
-                await loadDistancePricing();
-            } catch (err) { console.error("Delete error:", err); }
-        };
-
-        window.handleSaveWarrantyPricing = async function(event) {
-            event.preventDefault();
-            try {
-                const warrantyType = document.getElementById('warrantyType').value.trim();
-                const warKeyId = warrantyType.replace(/[^a-zA-Z0-9ก-ฮ]/g, '_');
-                const item = {
-                    id: warKeyId,
-                    warrantyType: warrantyType,
-                    warrantyPrice: parseFloat(document.getElementById('warrantyPrice').value),
-                    updatedAt: new Date().toISOString()
-                };
-                if (db) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list', warKeyId), item);
-                }
-                document.getElementById('warrantyType').value = '';
-                document.getElementById('warrantyPrice').value = '';
-                await loadWarrantyPricing();
-                populateFormDropdowns();
-                showModal('บันทึกสำเร็จ', 'บันทึกประกันเรียบร้อยแล้ว', true);
-            } catch (err) {
-                console.error("Save warranty error:", err);
-                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกประกันได้', false);
-            }
-        };
-
-        window.loadWarrantyPricing = async function() {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            let list = [];
-            try {
-                if (db) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list'));
-                    snap.forEach(d => list.push(d.data()));
-                }
-            } catch (err) { list = []; }
-            const tbody = document.getElementById('warrantyTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
-            list.forEach(item => {
-                const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
-                tbody.innerHTML += `<tr><td class="py-3 px-6 font-semibold text-slate-900">${escapeHtml(item.warrantyType)}</td><td class="py-3 px-6 text-pink-700 font-bold">${item.warrantyPrice} ฿</td><td class="py-3 px-6 text-xs text-slate-500">${dateStr}</td><td class="py-3 px-6 text-center"><button onclick="deleteWarrantyItem('${item.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-            });
-        };
-
-        window.deleteWarrantyItem = async function(id) {
-            try {
-                if (db) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list', id));
-                await loadWarrantyPricing();
-                populateFormDropdowns();
-            } catch (err) { console.error("Delete error:", err); }
-        };
+        async function loadPricing() {}
 
         function escapeHtml(str) {
             if (!str) return '';
