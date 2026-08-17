@@ -105,17 +105,20 @@
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภทสายไฟ</label>
                                 <select id="custWire" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
-                                    <option value="0">-- เลือกสายไฟ --</option>
+                                    <option value="THW THAIUNEY">THW THAIUNEY</option>
+                                    <option value="VAF 2x2.5">VAF 2x2.5</option>
+                                    <option value="NYY">NYY</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ระยะสาย (เมตร)</label>
-                                <input type="number" id="custDistanceInput" min="0" value="0" oninput="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm font-medium">
+                                <input type="number" id="custDistanceInput" min="0" value="10" oninput="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm font-medium">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ประกัน</label>
                                 <select id="custWarranty" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
-                                    <option value="0">-- เลือกประกัน --</option>
+                                    <option value="1 ปี">1 ปี</option>
+                                    <option value="2 ปี">2 ปี</option>
                                 </select>
                             </div>
                         </div>
@@ -174,11 +177,11 @@
             </div>
         </main>
 
-        <!-- พิมพ์ใบงาน (ซ่อนปกติ จะแสดงเฉพาะตอนสั่งพิมพ์) -->
+        <!-- พิมพ์ใบงาน -->
         <div id="printContainer" class="print-sheet"></div>
     </div>
 
-    <!-- Modal แจ้งเตือน -->
+    <!-- Modal -->
     <div id="customModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden no-print">
         <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-3">
             <h3 id="modalTitle" class="text-lg font-bold">สำเร็จ</h3>
@@ -189,7 +192,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'tkp7-circuit2-app';
         const firebaseConfig = {
@@ -232,7 +235,6 @@
             const role = sessionStorage.getItem('tkp7_user_role');
             if (role === 'admin') {
                 document.getElementById('nav-pricing').classList.remove('hidden');
-                loadPricing();
             }
             document.getElementById('nav-list').classList.remove('hidden');
             loadCustomers();
@@ -276,7 +278,7 @@
                 total += parseFloat(service.options[service.selectedIndex].getAttribute('data-price')) || 0;
             }
             const dist = parseFloat(document.getElementById('custDistanceInput').value) || 0;
-            total += dist * 50; // สมมติค่าสายไฟเมตรละ 50 บาท
+            total += dist * 50; 
             document.getElementById('displayTotalPrice').textContent = total.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + ' บาท';
             return total;
         };
@@ -292,9 +294,9 @@
                 email: sessionStorage.getItem('tkp7_user_email'),
                 recommender: document.getElementById('custRecommender').value.trim() || '-',
                 service: serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : '-',
-                wireBrand: 'THW THAIUNEY',
+                wireBrand: document.getElementById('custWire').value,
                 distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
-                warranty: '1 ปี',
+                warranty: document.getElementById('custWarranty').value,
                 address: document.getElementById('custAddress').value.trim(),
                 totalPrice: totalPrice,
                 installStatus: 'งานใหม่',
@@ -353,8 +355,8 @@
                 address: document.getElementById('custAddress').value.trim() || '-',
                 service: document.getElementById('custService').value || '-',
                 distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
-                wireBrand: 'THW THAIUNEY',
-                warranty: '1 ปี',
+                wireBrand: document.getElementById('custWire').value,
+                warranty: document.getElementById('custWarranty').value,
                 totalPrice: calculateTotal()
             };
             generatePrintHTML(tempCust);
@@ -372,40 +374,73 @@
         function generatePrintHTML(cust) {
             const nowStr = new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' });
             const html = `
-                <div style="font-family: 'Prompt', sans-serif; color: #000; padding: 20px; max-width: 800px; margin: auto;">
-                    <div style="text-align: center; border-bottom: 2px solid #db2777; padding-bottom: 10px; margin-bottom: 20px;">
-                        <h2 style="font-size: 24px; font-weight: bold; margin: 0; color: #1e293b;">TKP7 Pro Solutions</h2>
-                        <p style="font-size: 14px; font-weight: bold; color: #db2777; margin: 5px 0 0;">ใบรายละเอียดการติดตั้งวงจรที่ 2</p>
-                        <p style="font-size: 11px; color: #64748b; margin: 2px 0 0;">วันที่ออกเอกสาร: ${nowStr}</p>
+                <div style="font-family: 'Prompt', sans-serif; color: #000; padding: 15px; max-width: 800px; margin: auto; background: white;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h2 style="font-size: 26px; font-weight: bold; margin: 0; color: #000;">TKP7 Pro Solutions</h2>
+                        <p style="font-size: 15px; font-weight: bold; color: #db2777; margin: 4px 0;">ใบรายละเอียดการติดตั้งวงจรที่ 2</p>
+                        <p style="font-size: 12px; color: #555; margin: 0;">วันที่ออกเอกสาร: ${nowStr}</p>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
+
+                    <div style="margin-bottom: 12px; font-size: 14px; display: flex; justify-content: space-between;">
                         <div><strong>ชื่อลูกค้า:</strong> ${escapeHtml(cust.name)}</div>
                         <div><strong>เบอร์โทร:</strong> ${escapeHtml(cust.phone)}</div>
                     </div>
-                    <div style="margin-bottom: 10px; font-size: 13px;"><strong>สถานะติดตั้ง:</strong> ${escapeHtml(cust.installStatus || 'งานใหม่')}</div>
-                    <div style="margin-bottom: 20px; font-size: 13px;"><strong>ที่อยู่:</strong> ${escapeHtml(cust.address)}</div>
-                    
-                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
-                        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">หัวข้ออุปกรณ์ที่ลูกค้าได้รับ</div>
-                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ แบรนด์อุปกรณ์:</span> <strong>${escapeHtml(cust.service)}</strong></div>
-                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ ระยะสาย:</span> <strong>${escapeHtml(cust.distance)}</strong></div>
-                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ ประเภทสายไฟ:</span> <strong>${escapeHtml(cust.wireBrand || 'THW')}</strong></div>
-                        <div style="font-size: 12px; display: flex; justify-content: space-between; padding: 4px 0;"><span>✔ ประกัน:</span> <strong>${escapeHtml(cust.warranty || '1 ปี')}</strong></div>
+                    <div style="margin-bottom: 12px; font-size: 14px;"><strong>สถานะติดตั้ง:</strong> ${escapeHtml(cust.installStatus || 'งานใหม่')}</div>
+                    <div style="margin-bottom: 20px; font-size: 14px;"><strong>ที่อยู่:</strong> ${escapeHtml(cust.address)}</div>
+
+                    <div style="font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 5px;">หัวข้ออุปกรณ์ที่ลูกค้าได้รับ</div>
+
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ตู้คอมชูเมอร์ (แบรนด์อุปกรณ์ และ ราคา):</span>
+                        <strong>${escapeHtml(cust.service)}</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ท่อเดินสายไฟ ตามแนวระยะจริงหน้างาน (ระยะสาย: ${escapeHtml(cust.distance)}):</span>
+                        <strong>รวมในระบบ</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> อุปกรณ์การยืดสายไฟ พร้อมหัวกันน้ำ:</span>
+                        <strong>ฟรี / รวมติดตั้ง</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ลงกราว 5/8 2.40m:</span>
+                        <strong>รวมอุปกรณ์และติดตั้ง</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> จั้มไฟให้ (เฉพาะตามหน้างาน):</span>
+                        <strong>รวมบริการ</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> อุปกรณ์ ดับเพลิงฉุกเฉิน (ฟรี):</span>
+                        <strong style="color: #16a34a;">ฟรี</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ยี่ห้อสายไฟ (ประเภทสายไฟ):</span>
+                        <strong>${escapeHtml(cust.wireBrand || 'THW THAIUNEY')}</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 2px solid #000; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ประกัน:</span>
+                        <strong>${escapeHtml(cust.warranty || '1 ปี')}</strong>
                     </div>
 
-                    <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                        <span style="font-size: 16px; font-weight: bold; color: #831843;">ราคารวมทั้งสิ้นสุทธิ</span>
-                        <span style="font-size: 20px; font-weight: bold; color: #db2777;">${Number(cust.totalPrice).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท</span>
+                    <div style="border: 2px solid #fbcfe8; background: #fff1f2; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 18px; font-weight: bold; color: #831843;">ราคารวมทั้งสิ้นสุทธิ</span>
+                        <span style="font-size: 22px; font-weight: bold; color: #db2777;">${Number(cust.totalPrice).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท</span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; text-align: center;">
+                    <div style="border: 1px solid #fef08a; background: #fefce8; border-radius: 8px; padding: 12px; margin-bottom: 30px; font-size: 11px; color: #854d0e; display: flex; gap: 8px; align-items: flex-start;">
+                        <span style="font-size: 14px;">⚠️</span>
+                        <span><strong>หมายเหตุ:</strong> ระยะสายไฟ หากเกินจากที่ลูกค้าลงทะเบียนไว้จากหน้างานจริง ให้เก็บค่าสายไฟเพิ่มตามราคาไฟสายที่เลือกไว้ต่อเมตร</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 13px; text-align: center;">
                         <div style="width: 45%;">
-                            <div style="border-bottom: 1px solid #000; margin-bottom: 5px; height: 30px;"></div>
-                            <div>(ลงชื่อ)........................................... ผู้ให้บริการ</div>
+                            <div style="margin-bottom: 5px;">ลงชื่อ............................................................. ผู้ให้บริการ</div>
+                            <div style="margin-top: 25px;">( ............................................................. )</div>
                         </div>
                         <div style="width: 45%;">
-                            <div style="border-bottom: 1px solid #000; margin-bottom: 5px; height: 30px;"></div>
-                            <div>(ลงชื่อ)........................................... ลูกค้าผู้รับบริการ</div>
+                            <div style="margin-bottom: 5px;">ลงชื่อ............................................................. ลูกค้าผู้รับบริการ</div>
+                            <div style="margin-top: 25px;">( ............................................................. )</div>
                         </div>
                     </div>
                 </div>`;
@@ -430,8 +465,6 @@
             e.target.reset();
             populateFormDropdowns();
         };
-
-        async function loadPricing() {}
 
         function escapeHtml(str) {
             if (!str) return '';
