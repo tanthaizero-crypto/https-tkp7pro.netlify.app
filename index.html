@@ -87,21 +87,28 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ผู้แนะนำ</label>
                                 <input type="text" id="custRecommender" placeholder="ผู้แนะนำ (ถ้ามี)" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                             </div>
-                            <div>
+                            <div class="md:col-span-2">
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">แบรนด์อุปกรณ์ *</label>
-                                <select id="custService" required onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
+                                <select id="custService" required onchange="onEquipmentChange()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                                     <option value="">-- เลือกแบรนด์อุปกรณ์ --</option>
                                 </select>
+                                <!-- แสดงรูปภาพอุปกรณ์ที่เลือก (ขยายขนาดเป็น w-64 h-64) -->
+                                <div id="selectedEquipmentImageContainer" class="mt-3 hidden">
+                                    <span class="block text-xs font-semibold text-pink-800 mb-1">รูปภาพอุปกรณ์ที่เลือก:</span>
+                                    <div class="inline-block p-1 bg-white border border-pink-200 rounded-xl shadow-sm">
+                                        <img id="selectedEquipmentImg" src="" alt="Equipment Preview" class="w-64 h-64 object-cover rounded-lg">
+                                    </div>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภทสายไฟ</label>
-                                <select id="custWire" onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
-                                    <option value="0">-- เลือกสายไฟ --</option>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภทสายไฟ *</label>
+                                <select id="custWire" required onchange="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
+                                    <option value="">-- เลือกสายไฟ --</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">ระยะสาย (เมตร)</label>
-                                <input type="number" id="custDistanceInput" min="0" value="0" oninput="calculateTotal()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm font-medium">
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">ระยะสาย (เมตร) *</label>
+                                <input type="number" id="custDistanceInput" required min="1" value="" oninput="calculateTotal()" placeholder="ตัวอย่าง: 10" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm font-medium">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ประกัน</label>
@@ -159,16 +166,28 @@
 
             <!-- TAB 3: PRICING MANAGEMENT -->
             <div id="tab-pricing" class="hidden space-y-8">
-                <!-- 1. แบรนด์อุปกรณ์ -->
+                <!-- 1. แบรนด์อุปกรณ์ พร้อมแนบรูปภาพ -->
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
-                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-tags text-pink-600"></i> กำหนดราคาอุปกรณ์ และวงจรที่ 2</h2>
-                    <form onsubmit="handleSavePricing(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end mb-4">
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-tags text-pink-600"></i> กำหนดราคาอุปกรณ์ และวงจรที่ 2 (พร้อมแนบรูปภาพ)</h2>
+                    <form onsubmit="handleSavePricing(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end mb-4">
                         <input type="text" id="priceBrand" required placeholder="แบรนด์อุปกรณ์" class="px-3 py-2 border rounded-xl text-sm">
                         <input type="number" id="priceAmount" required step="0.01" placeholder="แพ็คเกจพื้นฐาน" class="px-3 py-2 border rounded-xl text-sm">
                         <input type="number" id="priceCircuit" required step="0.01" placeholder="ราคาวงจร" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="url" id="priceImage" placeholder="ลิงก์รูปภาพ (URL)" class="px-3 py-2 border rounded-xl text-sm">
                         <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกราคา</button>
                     </form>
-                    <table class="w-full text-left text-sm"><tbody id="pricingTableBody"></tbody></table>
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="text-xs text-slate-500 border-b">
+                                <th class="py-2 px-4">รูปภาพ</th>
+                                <th class="py-2 px-4">แบรนด์อุปกรณ์</th>
+                                <th class="py-2 px-4">แพ็คเกจ</th>
+                                <th class="py-2 px-4">วงจร</th>
+                                <th class="py-2 px-4 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pricingTableBody"></tbody>
+                    </table>
                 </div>
 
                 <!-- 2. แพ็คเกจพื้นฐาน -->
@@ -312,20 +331,18 @@
 
         async function populateFormDropdowns() {
             try {
-                // 1. แบรนด์อุปกรณ์
                 const snap1 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'equipment_pricing_basic'));
                 let html1 = '<option value="">-- เลือกแบรนด์อุปกรณ์ --</option>';
                 snap1.forEach(d => {
                     const item = d.data();
                     const sumPrice = (parseFloat(item.amount) || 0) + (parseFloat(item.circuitPrice) || 0);
-                    html1 += `<option value="${item.brand}" data-price="${sumPrice}">${item.brand} (${sumPrice.toLocaleString()} ฿)</option>`;
+                    html1 += `<option value="${item.brand}" data-price="${sumPrice}" data-image="${item.imageUrl || ''}">${item.brand} (${sumPrice.toLocaleString()} ฿)</option>`;
                 });
                 const custService = document.getElementById('custService');
                 if (custService) custService.innerHTML = html1;
 
-                // 2. ประเภทสายไฟ (เก็บราคาต่อเมตรไว้ที่ value)
                 const snap2 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
-                let html2 = '<option value="0">-- เลือกสายไฟ --</option>';
+                let html2 = '<option value="">-- เลือกสายไฟ --</option>';
                 snap2.forEach(d => {
                     const w = d.data();
                     html2 += `<option value="${w.wirePrice}" data-name="${w.wireType}">${w.wireType} (${w.wirePrice} ฿/เมตร)</option>`;
@@ -333,7 +350,6 @@
                 const custWire = document.getElementById('custWire');
                 if (custWire) custWire.innerHTML = html2;
 
-                // 3. ประกัน
                 const snap3 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'warranty_pricing_list'));
                 let html3 = '<option value="0">-- เลือกประกัน --</option>';
                 snap3.forEach(d => {
@@ -347,13 +363,34 @@
             } catch (err) { console.error(err); }
         }
 
-        // --- ระบบคำนวณราคารวม (รวมระยะสายที่เกินจากกำหนด) ---
+        window.onEquipmentChange = () => {
+            calculateTotal();
+            const serviceSelect = document.getElementById('custService');
+            const imgContainer = document.getElementById('selectedEquipmentImageContainer');
+            const imgElement = document.getElementById('selectedEquipmentImg');
+
+            if (serviceSelect && serviceSelect.selectedIndex > 0) {
+                const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+                const imageUrl = selectedOption.getAttribute('data-image');
+
+                if (imageUrl && imageUrl.trim() !== '') {
+                    imgElement.src = imageUrl;
+                    imgContainer.classList.remove('hidden');
+                } else {
+                    imgContainer.classList.add('hidden');
+                    imgElement.src = '';
+                }
+            } else {
+                imgContainer.classList.add('hidden');
+                imgElement.src = '';
+            }
+        };
+
         window.calculateTotal = async () => {
             let total = 0;
             let basePkgSum = 0;
             let basePkgNamesHtml = '';
             
-            // ดึงแพ็คเกจพื้นฐาน
             try {
                 const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'base_package_pricing'));
                 snap.forEach(d => {
@@ -371,17 +408,14 @@
                 listEl.innerHTML = basePkgNamesHtml;
             }
 
-            // ราคาอุปกรณ์
             const service = document.getElementById('custService');
             const servicePrice = (service && service.selectedIndex > 0) ? parseFloat(service.options[service.selectedIndex].getAttribute('data-price')) || 0 : 0;
             
-            // ค้นหาขีดจำกัดระยะสายฟรี/รวมในระบบจาก 'distance_pricing_list'
             let includedDistanceLimit = 0;
             try {
                 const snapDist = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
                 snapDist.forEach(d => {
                     const dData = d.data();
-                    // ดึงตัวเลขจากชื่อช่วง เช่น "0 - 10 เมตร" จะได้ 10 เป็นลิมิต
                     const nums = dData.range.match(/\d+/g);
                     if (nums && nums.length > 0) {
                         const maxVal = parseInt(nums[nums.length - 1], 10);
@@ -394,15 +428,12 @@
             const wirePricePerMeter = parseFloat(document.getElementById('custWire')?.value) || 0;
 
             let distanceCharge = 0;
-            // ถ้าระยะสายที่กรอก เกินกว่าตัวเลขที่ตั้งไว้ในระบบ ให้คิดส่วนที่เกิน คูณราคาต่อเมตรของสายไฟที่เลือก
             if (inputDistance > includedDistanceLimit && includedDistanceLimit > 0) {
                 distanceCharge = (inputDistance - includedDistanceLimit) * wirePricePerMeter;
             } else if (includedDistanceLimit === 0 && inputDistance > 0) {
-                // ถ้าไม่ได้กำหนดระยะฟรีไว้ คิดตามเมตรทั้งหมด
                 distanceCharge = inputDistance * wirePricePerMeter;
             }
 
-            // ราคาประกัน
             const warranty = document.getElementById('custWarranty');
             const warrantyPrice = (warranty && warranty.selectedIndex > 0) ? parseFloat(warranty.value) || 0 : 0;
 
@@ -439,6 +470,7 @@
             showModal('บันทึกสำเร็จ!', 'ข้อมูลลูกค้าถูกบันทึกลงระบบเรียบร้อย');
             document.getElementById('customerForm').reset();
             document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
+            document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
             loadCustomers();
         };
 
@@ -589,10 +621,16 @@
             }
         };
 
-        // --- Pricing Management Functions ---
         window.loadAllPricingTables = async () => {
             if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
-            loadTableData('equipment_pricing_basic', 'pricingTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.brand)}</td><td class="py-2 px-4">${item.amount} ฿</td><td class="py-2 px-4">${item.circuitPrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('equipment_pricing_basic','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
+            loadTableData('equipment_pricing_basic', 'pricingTableBody', item => `
+                <tr>
+                    <td class="py-2 px-4">${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" class="w-10 h-10 object-cover rounded-lg border">` : '<span class="text-xs text-slate-400">ไม่มีรูป</span>'}</td>
+                    <td class="py-2 px-4 font-semibold">${escapeHtml(item.brand)}</td>
+                    <td class="py-2 px-4">${item.amount} ฿</td>
+                    <td class="py-2 px-4">${item.circuitPrice} ฿</td>
+                    <td class="py-2 px-4 text-center"><button onclick="deletePricingItem('equipment_pricing_basic','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`);
             loadTableData('base_package_pricing', 'basePkgTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.pkgName)}</td><td class="py-2 px-4">${item.pkgPrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('base_package_pricing','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
             loadTableData('wire_pricing_list', 'wireTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.wireType)}</td><td class="py-2 px-4">${item.wirePrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('wire_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
             loadTableData('distance_pricing_list', 'distanceTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.range)}</td><td class="py-2 px-4">${item.price} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('distance_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
@@ -607,10 +645,18 @@
                 const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', colName));
                 snap.forEach(d => { html += rowCallback(d.data()); });
             } catch(e) {}
-            tbody.innerHTML = html || '<tr><td colspan="4" class="py-3 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="5" class="py-3 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>';
         }
 
-        window.handleSavePricing = async (e) => { e.preventDefault(); await saveItem('equipment_pricing_basic', document.getElementById('priceBrand').value, { brand: document.getElementById('priceBrand').value, amount: parseFloat(document.getElementById('priceAmount').value), circuitPrice: parseFloat(document.getElementById('priceCircuit').value) }); };
+        window.handleSavePricing = async (e) => { 
+            e.preventDefault(); 
+            await saveItem('equipment_pricing_basic', document.getElementById('priceBrand').value, { 
+                brand: document.getElementById('priceBrand').value, 
+                amount: parseFloat(document.getElementById('priceAmount').value), 
+                circuitPrice: parseFloat(document.getElementById('priceCircuit').value),
+                imageUrl: document.getElementById('priceImage').value.trim()
+            }); 
+        };
         window.handleSaveBasePackage = async (e) => { e.preventDefault(); await saveItem('base_package_pricing', document.getElementById('basePkgName').value, { pkgName: document.getElementById('basePkgName').value, pkgPrice: parseFloat(document.getElementById('basePkgPrice').value) }); };
         window.handleSaveWirePricing = async (e) => { e.preventDefault(); await saveItem('wire_pricing_list', document.getElementById('wireType').value, { wireType: document.getElementById('wireType').value, wirePrice: parseFloat(document.getElementById('wirePrice').value) }); };
         window.handleSaveDistancePricing = async (e) => { e.preventDefault(); await saveItem('distance_pricing_list', document.getElementById('distanceRange').value, { range: document.getElementById('distanceRange').value, price: parseFloat(document.getElementById('distancePrice').value) }); };
