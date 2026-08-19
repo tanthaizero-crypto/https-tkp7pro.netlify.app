@@ -87,13 +87,21 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ผู้แนะนำ</label>
                                 <input type="text" id="custRecommender" placeholder="ผู้แนะนำ (ถ้ามี)" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                             </div>
-                            <div class="md:col-span-2">
+                            <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">แบรนด์อุปกรณ์ *</label>
                                 <select id="custService" required onchange="onEquipmentChange()" class="w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm">
                                     <option value="">-- เลือกแบรนด์อุปกรณ์ --</option>
                                 </select>
-                                <!-- แสดงรูปภาพอุปกรณ์ที่เลือก (ขยายขนาดเป็น w-64 h-64) -->
-                                <div id="selectedEquipmentImageContainer" class="mt-3 hidden">
+                            </div>
+                            <!-- อุปกรณ์เสริมเลือกได้สูงสุด 3 รายการ (Checkbox) -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">อุปกรณ์เสริม (เลือกได้สูงสุด 3 รายการ)</label>
+                                <div id="accessoryCheckboxContainer" class="p-3 bg-white/80 border border-slate-200 rounded-xl space-y-2 max-h-40 overflow-y-auto">
+                                    <span class="text-xs text-slate-400">กำลังโหลดรายการ...</span>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <div id="selectedEquipmentImageContainer" class="mt-1 hidden">
                                     <span class="block text-xs font-semibold text-pink-800 mb-1">รูปภาพอุปกรณ์ที่เลือก:</span>
                                     <div class="inline-block p-1 bg-white border border-pink-200 rounded-xl shadow-sm">
                                         <img id="selectedEquipmentImg" src="" alt="Equipment Preview" class="w-64 h-64 object-cover rounded-lg">
@@ -132,9 +140,6 @@
                             </div>
                         </div>
                         <div class="flex justify-end gap-3 pt-2">
-                            <button type="button" onclick="printFormPreview()" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow flex items-center gap-2">
-                                <i class="fa-solid fa-print"></i> ปริ้นใบงาน
-                            </button>
                             <button type="submit" id="submitBtn" class="px-8 py-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-sm font-medium shadow flex items-center gap-2">
                                 <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลลูกค้า
                             </button>
@@ -152,7 +157,7 @@
                             <thead>
                                 <tr class="bg-pink-50 border-b border-pink-100 text-xs font-bold text-pink-800 uppercase">
                                     <th class="py-3 px-4">ชื่อลูกค้า / เบอร์โทร</th>
-                                    <th class="py-3 px-4">สถานะ</th>
+                                    <th class="py-3 px-4">สถานะ (คลิกเพื่อเปลี่ยน)</th>
                                     <th class="py-3 px-4">แบรนด์อุปกรณ์</th>
                                     <th class="py-3 px-4">ราคารวม</th>
                                     <th class="py-3 px-4 text-center">พิมพ์ใบงาน / จัดการ</th>
@@ -166,15 +171,15 @@
 
             <!-- TAB 3: PRICING MANAGEMENT -->
             <div id="tab-pricing" class="hidden space-y-8">
-                <!-- 1. แบรนด์อุปกรณ์ พร้อมแนบรูปภาพ -->
+                <!-- 1. แบรนด์อุปกรณ์ -->
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
-                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-tags text-pink-600"></i> กำหนดราคาอุปกรณ์ และวงจรที่ 2 (พร้อมแนบรูปภาพ)</h2>
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-tags text-pink-600"></i> กำหนดราคาแบรนด์อุปกรณ์หลัก</h2>
                     <form onsubmit="handleSavePricing(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end mb-4">
                         <input type="text" id="priceBrand" required placeholder="แบรนด์อุปกรณ์" class="px-3 py-2 border rounded-xl text-sm">
                         <input type="number" id="priceAmount" required step="0.01" placeholder="แพ็คเกจพื้นฐาน" class="px-3 py-2 border rounded-xl text-sm">
                         <input type="number" id="priceCircuit" required step="0.01" placeholder="ราคาวงจร" class="px-3 py-2 border rounded-xl text-sm">
                         <input type="url" id="priceImage" placeholder="ลิงก์รูปภาพ (URL)" class="px-3 py-2 border rounded-xl text-sm">
-                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกราคา</button>
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกแบรนด์</button>
                     </form>
                     <table class="w-full text-left text-sm">
                         <thead>
@@ -190,7 +195,27 @@
                     </table>
                 </div>
 
-                <!-- 2. แพ็คเกจพื้นฐาน -->
+                <!-- 2. อุปกรณ์เสริม -->
+                <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-box text-pink-600"></i> กำหนดราคาอุปกรณ์เสริม (ชุดตู้เหล็กนิรภัย / ชุดปลั๊ก)</h2>
+                    <form onsubmit="handleSaveAccessoryPricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
+                        <input type="text" id="accName" required placeholder="ชื่ออุปกรณ์ (เช่น ชุดตู้เหล็กนิรภัย, ชุดปลั๊ก)" class="px-3 py-2 border rounded-xl text-sm">
+                        <input type="number" id="accPrice" required step="0.01" placeholder="ราคา" class="px-3 py-2 border rounded-xl text-sm">
+                        <button type="submit" class="py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow">บันทึกอุปกรณ์เสริม</button>
+                    </form>
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="text-xs text-slate-500 border-b">
+                                <th class="py-2 px-4">ชื่ออุปกรณ์เสริม</th>
+                                <th class="py-2 px-4">ราคา</th>
+                                <th class="py-2 px-4 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accessoryTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- 3. แพ็คเกจพื้นฐาน -->
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
                     <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-box-archive text-pink-600"></i> รายการ แพ็คเกจพื้นฐาน (บาท)</h2>
                     <form onsubmit="handleSaveBasePackage(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
@@ -201,7 +226,7 @@
                     <table class="w-full text-left text-sm"><tbody id="basePkgTableBody"></tbody></table>
                 </div>
 
-                <!-- 3. สายไฟ -->
+                <!-- 4. สายไฟ -->
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
                     <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-bolt text-pink-600"></i> รายการ สายไฟ และ ราคา</h2>
                     <form onsubmit="handleSaveWirePricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
@@ -212,7 +237,7 @@
                     <table class="w-full text-left text-sm"><tbody id="wireTableBody"></tbody></table>
                 </div>
 
-                <!-- 4. ระยะสาย -->
+                <!-- 5. ระยะสาย -->
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
                     <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-ruler text-pink-600"></i> รายการ ระยะสาย และ ราคา</h2>
                     <form onsubmit="handleSaveDistancePricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
@@ -223,7 +248,7 @@
                     <table class="w-full text-left text-sm"><tbody id="distanceTableBody"></tbody></table>
                 </div>
 
-                <!-- 5. ประกัน -->
+                <!-- 6. ประกัน -->
                 <div class="glass-card rounded-2xl p-6 border border-pink-200 shadow-xl">
                     <h2 class="text-lg font-bold mb-4 text-pink-900"><i class="fa-solid fa-shield-halved text-pink-600"></i> รายการ ประกัน และ ราคา</h2>
                     <form onsubmit="handleSaveWarrantyPricing(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-4">
@@ -251,7 +276,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'tkp7-circuit2-app';
         const firebaseConfig = {
@@ -341,6 +366,23 @@
                 const custService = document.getElementById('custService');
                 if (custService) custService.innerHTML = html1;
 
+                const snapAcc = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'accessory_pricing_list'));
+                let htmlAcc = '';
+                let accCount = 0;
+                snapAcc.forEach(d => {
+                    const acc = d.data();
+                    accCount++;
+                    htmlAcc += `
+                        <label class="flex items-center space-x-2 text-sm cursor-pointer select-none">
+                            <input type="checkbox" name="custAccessory" value="${acc.accPrice}" data-name="${acc.accName}" onchange="handleAccessorySelection(this)" class="w-4 h-4 text-pink-600 rounded border-slate-300 focus:ring-pink-500">
+                            <span>${escapeHtml(acc.accName)} (${parseFloat(acc.accPrice).toLocaleString()} ฿)</span>
+                        </label>`;
+                });
+                const container = document.getElementById('accessoryCheckboxContainer');
+                if (container) {
+                    container.innerHTML = accCount === 0 ? '<span class="text-xs text-slate-400">ยังไม่มีรายการอุปกรณ์เสริม</span>' : htmlAcc;
+                }
+
                 const snap2 = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
                 let html2 = '<option value="">-- เลือกสายไฟ --</option>';
                 snap2.forEach(d => {
@@ -362,6 +404,16 @@
                 calculateTotal();
             } catch (err) { console.error(err); }
         }
+
+        window.handleAccessorySelection = (checkbox) => {
+            const checkedBoxes = document.querySelectorAll('input[name="custAccessory"]:checked');
+            if (checkedBoxes.length > 3) {
+                checkbox.checked = false;
+                showModal('แจ้งเตือน', 'สามารถเลือกอุปกรณ์เสริมได้สูงสุด 3 รายการเท่านั้นครับ');
+                return;
+            }
+            calculateTotal();
+        };
 
         window.onEquipmentChange = () => {
             calculateTotal();
@@ -411,6 +463,12 @@
             const service = document.getElementById('custService');
             const servicePrice = (service && service.selectedIndex > 0) ? parseFloat(service.options[service.selectedIndex].getAttribute('data-price')) || 0 : 0;
             
+            let accessoryPrice = 0;
+            const checkedAccessories = document.querySelectorAll('input[name="custAccessory"]:checked');
+            checkedAccessories.forEach(cb => {
+                accessoryPrice += parseFloat(cb.value) || 0;
+            });
+
             let includedDistanceLimit = 0;
             try {
                 const snapDist = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
@@ -437,7 +495,7 @@
             const warranty = document.getElementById('custWarranty');
             const warrantyPrice = (warranty && warranty.selectedIndex > 0) ? parseFloat(warranty.value) || 0 : 0;
 
-            total = basePkgSum + servicePrice + distanceCharge + warrantyPrice;
+            total = basePkgSum + servicePrice + accessoryPrice + distanceCharge + warrantyPrice;
             
             const display = document.getElementById('displayTotalPrice');
             if (display) display.textContent = total.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + ' บาท';
@@ -451,12 +509,18 @@
             const wireSelect = document.getElementById('custWire');
             const warrantySelect = document.getElementById('custWarranty');
 
+            const selectedAccNames = [];
+            document.querySelectorAll('input[name="custAccessory"]:checked').forEach(cb => {
+                selectedAccNames.push(cb.getAttribute('data-name'));
+            });
+
             const newCustomer = {
                 name: document.getElementById('custName').value.trim(),
                 phone: document.getElementById('custPhone').value.trim(),
                 email: sessionStorage.getItem('tkp7_user_email'),
                 recommender: document.getElementById('custRecommender').value.trim() || '-',
                 service: serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : '-',
+                accessories: selectedAccNames,
                 wireBrand: wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-',
                 distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
                 warranty: warrantySelect.options[warrantySelect.selectedIndex] && warrantySelect.selectedIndex > 0 ? warrantySelect.options[warrantySelect.selectedIndex].getAttribute('data-name') : '-',
@@ -469,6 +533,7 @@
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), newCustomer);
             showModal('บันทึกสำเร็จ!', 'ข้อมูลลูกค้าถูกบันทึกลงระบบเรียบร้อย');
             document.getElementById('customerForm').reset();
+            document.querySelectorAll('input[name="custAccessory"]').forEach(cb => cb.checked = false);
             document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
             document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
             loadCustomers();
@@ -492,11 +557,28 @@
             if (!tbody) return;
             tbody.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
             list.forEach(cust => {
+                let accDisplay = '';
+                if (cust.accessories && cust.accessories.length > 0) {
+                    accDisplay = `<br><span class="text-xs text-pink-600">+ ${cust.accessories.join(', ')}</span>`;
+                }
+
+                const currentStatus = cust.installStatus || 'งานใหม่';
+                // ถ้าเป็น admin ให้แสดงปุ่มคลิกเปลี่ยนสถานะได้
+                let statusBadge = '';
+                if (role === 'admin') {
+                    const nextStatus = currentStatus === 'งานใหม่' ? 'ติดตั้งแล้ว' : 'งานใหม่';
+                    const badgeClass = currentStatus === 'งานใหม่' ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
+                    statusBadge = `<button onclick="toggleCustomerStatus('${cust.id}', '${nextStatus}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass} transition cursor-pointer" title="คลิกเพื่อเปลี่ยนสถานะ"><i class="fa-solid fa-rotate mr-1"></i> ${currentStatus}</button>`;
+                } else {
+                    const badgeClass = currentStatus === 'งานใหม่' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass}">${currentStatus}</span>`;
+                }
+
                 tbody.innerHTML += `
                     <tr>
                         <td class="py-3 px-4 font-semibold">${escapeHtml(cust.name)}<br><span class="text-xs text-slate-500">${escapeHtml(cust.phone)}</span></td>
-                        <td class="py-3 px-4"><span class="px-2 py-1 rounded text-xs bg-amber-50 text-amber-800 border border-amber-200">${cust.installStatus}</span></td>
-                        <td class="py-3 px-4">${escapeHtml(cust.service)}</td>
+                        <td class="py-3 px-4">${statusBadge}</td>
+                        <td class="py-3 px-4">${escapeHtml(cust.service)}${accDisplay}</td>
                         <td class="py-3 px-4 font-bold text-pink-700">${Number(cust.totalPrice).toLocaleString()} ฿</td>
                         <td class="py-3 px-4 text-center space-x-2">
                             <button onclick="printSpecificCustomer('${cust.id}')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium"><i class="fa-solid fa-print"></i> พิมพ์</button>
@@ -506,28 +588,16 @@
             });
         };
 
-        window.printFormPreview = async () => {
-            const name = document.getElementById('custName').value.trim();
-            const phone = document.getElementById('custPhone').value.trim();
-            if (!name || !phone) {
-                showModal('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อและเบอร์โทรศัพท์ก่อนพิมพ์ใบงาน');
-                return;
+        // ฟังก์ชันสำหรับ Admin เปลี่ยนสถานะงาน
+        window.toggleCustomerStatus = async (id, newStatus) => {
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id);
+                await updateDoc(docRef, { installStatus: newStatus });
+                loadCustomers();
+            } catch (err) {
+                console.error("Error updating status:", err);
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถเปลี่ยนสถานะได้');
             }
-            const wireSelect = document.getElementById('custWire');
-            const warSelect = document.getElementById('custWarranty');
-            const tempCust = {
-                name: name,
-                phone: phone,
-                installStatus: 'งานใหม่',
-                address: document.getElementById('custAddress').value.trim() || '-',
-                service: document.getElementById('custService').value || '-',
-                distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
-                wireBrand: wireSelect.options[wireSelect.selectedIndex] ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-',
-                warranty: warSelect.options[warSelect.selectedIndex] ? warSelect.options[warSelect.selectedIndex].getAttribute('data-name') : '-',
-                totalPrice: await window.calculateTotal()
-            };
-            generatePrintHTML(tempCust);
-            window.print();
         };
 
         window.printSpecificCustomer = (id) => {
@@ -540,6 +610,18 @@
 
         function generatePrintHTML(cust) {
             const nowStr = new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' });
+            
+            let accPrintRows = '';
+            if (cust.accessories && cust.accessories.length > 0) {
+                cust.accessories.forEach(acc => {
+                    accPrintRows += `
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> อุปกรณ์เสริม:</span>
+                        <strong>${escapeHtml(acc)}</strong>
+                    </div>`;
+                });
+            }
+
             const html = `
                 <div style="font-family: 'Prompt', sans-serif; color: #000; padding: 15px; max-width: 800px; margin: auto; background: white;">
                     <div style="text-align: center; margin-bottom: 20px;">
@@ -558,9 +640,10 @@
                     <div style="font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 5px;">หัวข้ออุปกรณ์ที่ลูกค้าได้รับ</div>
 
                     <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
-                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ตู้คอมชูเมอร์ (แบรนด์อุปกรณ์ และ ราคา):</span>
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> แบรนด์อุปกรณ์:</span>
                         <strong>${escapeHtml(cust.service)}</strong>
                     </div>
+                    ${accPrintRows}
                     <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
                         <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ท่อเดินสายไฟ ตามแนวระยะจริงหน้างาน (ระยะสาย: ${escapeHtml(cust.distance)}):</span>
                         <strong>รวมในระบบ</strong>
@@ -631,6 +714,12 @@
                     <td class="py-2 px-4">${item.circuitPrice} ฿</td>
                     <td class="py-2 px-4 text-center"><button onclick="deletePricingItem('equipment_pricing_basic','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>`);
+            loadTableData('accessory_pricing_list', 'accessoryTableBody', item => `
+                <tr>
+                    <td class="py-2 px-4 font-semibold">${escapeHtml(item.accName)}</td>
+                    <td class="py-2 px-4">${item.accPrice} ฿</td>
+                    <td class="py-2 px-4 text-center"><button onclick="deletePricingItem('accessory_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`);
             loadTableData('base_package_pricing', 'basePkgTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.pkgName)}</td><td class="py-2 px-4">${item.pkgPrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('base_package_pricing','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
             loadTableData('wire_pricing_list', 'wireTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.wireType)}</td><td class="py-2 px-4">${item.wirePrice} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('wire_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
             loadTableData('distance_pricing_list', 'distanceTableBody', item => `<tr><td class="py-2 px-4">${escapeHtml(item.range)}</td><td class="py-2 px-4">${item.price} ฿</td><td class="py-2 px-4 text-center"><button onclick="deletePricingItem('distance_pricing_list','${item.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button></td></tr>`);
@@ -656,6 +745,13 @@
                 circuitPrice: parseFloat(document.getElementById('priceCircuit').value),
                 imageUrl: document.getElementById('priceImage').value.trim()
             }); 
+        };
+        window.handleSaveAccessoryPricing = async (e) => {
+            e.preventDefault();
+            await saveItem('accessory_pricing_list', document.getElementById('accName').value, {
+                accName: document.getElementById('accName').value,
+                accPrice: parseFloat(document.getElementById('accPrice').value)
+            });
         };
         window.handleSaveBasePackage = async (e) => { e.preventDefault(); await saveItem('base_package_pricing', document.getElementById('basePkgName').value, { pkgName: document.getElementById('basePkgName').value, pkgPrice: parseFloat(document.getElementById('basePkgPrice').value) }); };
         window.handleSaveWirePricing = async (e) => { e.preventDefault(); await saveItem('wire_pricing_list', document.getElementById('wireType').value, { wireType: document.getElementById('wireType').value, wirePrice: parseFloat(document.getElementById('wirePrice').value) }); };
