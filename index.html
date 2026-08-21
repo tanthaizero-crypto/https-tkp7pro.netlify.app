@@ -387,7 +387,7 @@
                 let html2 = '<option value="">-- เลือกสายไฟ --</option>';
                 snap2.forEach(d => {
                     const w = d.data();
-                    html2 += `<option value="${w.wirePrice}" data-name="${w.wireType}">${w.wireType} (${w.wirePrice} ฿/เมตร)</option>`;
+                    html2 += `<option value="${w.wirePrice}" data-name="${w.wireType}" data-price="${w.wirePrice}">${w.wireType} (${w.wirePrice} ฿/เมตร)</option>`;
                 });
                 const custWire = document.getElementById('custWire');
                 if (custWire) custWire.innerHTML = html2;
@@ -514,6 +514,8 @@
                 selectedAccNames.push(cb.getAttribute('data-name'));
             });
 
+            const wirePricePerMeter = wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? parseFloat(wireSelect.options[wireSelect.selectedIndex].getAttribute('data-price')) || 0 : 0;
+
             const newCustomer = {
                 name: document.getElementById('custName').value.trim(),
                 phone: document.getElementById('custPhone').value.trim(),
@@ -522,7 +524,8 @@
                 service: serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : '-',
                 accessories: selectedAccNames,
                 wireBrand: wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? wireSelect.options[wireSelect.selectedIndex].getAttribute('data-name') : '-',
-                distance: document.getElementById('custDistanceInput').value.trim() + ' เมตร',
+                wirePricePerMeter: wirePricePerMeter,
+                distance: document.getElementById('custDistanceInput').value.trim(),
                 warranty: warrantySelect.options[warrantySelect.selectedIndex] && warrantySelect.selectedIndex > 0 ? warrantySelect.options[warrantySelect.selectedIndex].getAttribute('data-name') : '-',
                 address: document.getElementById('custAddress').value.trim(),
                 totalPrice: totalPrice,
@@ -563,7 +566,6 @@
                 }
 
                 const currentStatus = cust.installStatus || 'งานใหม่';
-                // ถ้าเป็น admin ให้แสดงปุ่มคลิกเปลี่ยนสถานะได้
                 let statusBadge = '';
                 if (role === 'admin') {
                     const nextStatus = currentStatus === 'งานใหม่' ? 'ติดตั้งแล้ว' : 'งานใหม่';
@@ -588,7 +590,6 @@
             });
         };
 
-        // ฟังก์ชันสำหรับ Admin เปลี่ยนสถานะงาน
         window.toggleCustomerStatus = async (id, newStatus) => {
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id);
@@ -600,17 +601,67 @@
             }
         };
 
-        window.printSpecificCustomer = (id) => {
+        window.printSpecificCustomer = async (id) => {
             const cust = allCustomers.find(c => c.id === id);
             if (cust) {
-                generatePrintHTML(cust);
+                await generatePrintHTML(cust);
                 window.print();
             }
         };
 
-        function generatePrintHTML(cust) {
+        async function generatePrintHTML(cust) {
             const nowStr = new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' });
             
+            // ดึงค่าระยะสายฟรีสูงสุดจากฐานข้อมูล (distance_pricing_list)
+            let includedDistanceLimit = 0;
+            let freeDistanceText = 'ระยะสายไฟฟรี';
+            try {
+                const snapDist = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'distance_pricing_list'));
+                snapDist.forEach(d => {
+                    const dData = d.data();
+                    if (dData.range) {
+                        let rangeStr = dData.range.trim();
+                        if (!rangeStr.endsWith('เมตร')) {
+                            rangeStr += ' เมตร';
+                        }
+                        freeDistanceText = `ระยะสายไฟฟรี ${rangeStr}`;
+                        const nums = rangeStr.match(/\d+/g);
+                        if (nums && nums.length > 0) {
+                            const maxVal = parseInt(nums[nums.length - 1], 10);
+                            if (maxVal > includedDistanceLimit) includedDistanceLimit = maxVal;
+                        }
+                    }
+                });
+            } catch (e) {}
+
+            // ดึงราคาต่อเมตรปัจจุบันจาก wire_pricing_list เผื่อเคสข้อมูลเก่าที่ยังไม่มี wirePricePerMeter
+            let wireRate = parseFloat(cust.wirePricePerMeter) || 0;
+            if (wireRate === 0 && cust.wireBrand) {
+                try {
+                    const snapWire = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'wire_pricing_list'));
+                    snapWire.forEach(d => {
+                        const wData = d.data();
+                        if (cust.wireBrand.includes(wData.wireType)) {
+                            wireRate = parseFloat(wData.wirePrice) || 0;
+                        }
+                    });
+                } catch(e) {}
+            }
+
+            // ทำความสะอาดข้อความระยะสายให้แสดงผลตัวเลขเพียวๆ ไม่มีคำว่า เมตร ซ้ำซ้อน
+            let rawDistStr = (cust.distance || '0').replace(/เมตร/g, '').trim();
+            const custDistNum = parseFloat(rawDistStr) || 0;
+
+            // คำนวณค่าท่อเดินสายไฟส่วนเกิน: (ระยะที่เลือก - ระยะฟรี) * ราคาต่อเมตร
+            let pipeCharge = 0;
+            if (custDistNum > includedDistanceLimit && includedDistanceLimit > 0) {
+                pipeCharge = (custDistNum - includedDistanceLimit) * wireRate;
+            } else if (includedDistanceLimit === 0 && custDistNum > 0) {
+                pipeCharge = custDistNum * wireRate;
+            }
+
+            const pipeChargeDisplay = pipeCharge > 0 ? `${pipeCharge.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท` : 'รวมในระบบ';
+
             let accPrintRows = '';
             if (cust.accessories && cust.accessories.length > 0) {
                 cust.accessories.forEach(acc => {
@@ -645,8 +696,12 @@
                     </div>
                     ${accPrintRows}
                     <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
-                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ท่อเดินสายไฟ ตามแนวระยะจริงหน้างาน (ระยะสาย: ${escapeHtml(cust.distance)}):</span>
-                        <strong>รวมในระบบ</strong>
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ท่อเดินสายไฟ ตามแนวระยะจริงหน้างาน (ระยะสาย: ${custDistNum} เมตร):</span>
+                        <strong>${pipeChargeDisplay}</strong>
+                    </div>
+                    <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> ${freeDistanceText}:</span>
+                        <strong style="color: #16a34a;">ฟรี</strong>
                     </div>
                     <div style="font-size: 13px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
                         <span><span style="color: #16a34a; font-weight: bold; margin-right: 5px;">✓</span> อุปกรณ์การยืดสายไฟ พร้อมหัวกันน้ำ:</span>
