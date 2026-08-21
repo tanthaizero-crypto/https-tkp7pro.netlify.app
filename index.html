@@ -65,11 +65,15 @@
             <!-- TAB 1: FORM -->
             <div id="tab-form" class="space-y-6">
                 <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 overflow-hidden">
-                    <div class="bg-gradient-to-r from-pink-700 to-rose-600 px-6 py-5 text-white">
-                        <h2 class="text-xl font-bold">ฟอร์มบันทึกข้อมูลลูกค้าใหม่</h2>
-                        <p class="text-pink-100 text-xs">กรอกรายละเอียดข้อมูลลูกค้าเพื่อบันทึกและพิมพ์ใบงาน</p>
+                    <div class="bg-gradient-to-r from-pink-700 to-rose-600 px-6 py-5 text-white flex justify-between items-center">
+                        <div>
+                            <h2 id="formTitle" class="text-xl font-bold">ฟอร์มบันทึกข้อมูลลูกค้าใหม่</h2>
+                            <p id="formSubtitle" class="text-pink-100 text-xs">กรอกรายละเอียดข้อมูลลูกค้าเพื่อบันทึกและพิมพ์ใบงาน</p>
+                        </div>
+                        <button id="cancelEditBtn" onclick="resetFormMode()" class="hidden px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs rounded-lg"><i class="fa-solid fa-xmark mr-1"></i> ยกเลิกแก้ไข</button>
                     </div>
                     <form id="customerForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-6">
+                        <input type="hidden" id="editingCustomerId" value="">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">ชื่อ - นามสกุลลูกค้า *</label>
@@ -515,8 +519,9 @@
             });
 
             const wirePricePerMeter = wireSelect.options[wireSelect.selectedIndex] && wireSelect.selectedIndex > 0 ? parseFloat(wireSelect.options[wireSelect.selectedIndex].getAttribute('data-price')) || 0 : 0;
+            const editingId = document.getElementById('editingCustomerId').value;
 
-            const newCustomer = {
+            const customerData = {
                 name: document.getElementById('custName').value.trim(),
                 phone: document.getElementById('custPhone').value.trim(),
                 email: sessionStorage.getItem('tkp7_user_email'),
@@ -529,17 +534,27 @@
                 warranty: warrantySelect.options[warrantySelect.selectedIndex] && warrantySelect.selectedIndex > 0 ? warrantySelect.options[warrantySelect.selectedIndex].getAttribute('data-name') : '-',
                 address: document.getElementById('custAddress').value.trim(),
                 totalPrice: totalPrice,
-                installStatus: 'งานใหม่',
-                createdAt: new Date().toISOString()
+                installStatus: 'งานใหม่'
             };
 
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), newCustomer);
-            showModal('บันทึกสำเร็จ!', 'ข้อมูลลูกค้าถูกบันทึกลงระบบเรียบร้อย');
-            document.getElementById('customerForm').reset();
-            document.querySelectorAll('input[name="custAccessory"]').forEach(cb => cb.checked = false);
-            document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
-            document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
+            if (editingId) {
+                // อัปเดตข้อมูลเดิม
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', editingId);
+                await updateDoc(docRef, customerData);
+                showModal('อัปเดตสำเร็จ!', 'ข้อมูลลูกค้าถูกแก้ไขเรียบร้อยแล้ว');
+                resetFormMode();
+            } else {
+                // เพิ่มข้อมูลใหม่
+                customerData.createdAt = new Date().toISOString();
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), customerData);
+                showModal('บันทึกสำเร็จ!', 'ข้อมูลลูกค้าถูกบันทึกลงระบบเรียบร้อย');
+                document.getElementById('customerForm').reset();
+                document.querySelectorAll('input[name="custAccessory"]').forEach(cb => cb.checked = false);
+                document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
+                document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
+            }
             loadCustomers();
+            switchTab('list');
         };
 
         window.loadCustomers = async () => {
@@ -553,7 +568,7 @@
                     list.push({ id: d.id, ...data });
                 }
             });
-            list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
             allCustomers = list;
             
             const tbody = document.getElementById('customerTableBody');
@@ -584,7 +599,10 @@
                         <td class="py-3 px-4 font-bold text-pink-700">${Number(cust.totalPrice).toLocaleString()} ฿</td>
                         <td class="py-3 px-4 text-center space-x-2">
                             <button onclick="printSpecificCustomer('${cust.id}')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium"><i class="fa-solid fa-print"></i> พิมพ์</button>
-                            ${role === 'admin' ? `<button onclick="deleteCust('${cust.id}')" class="px-2 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                            ${role === 'admin' ? `
+                                <button onclick="editCustomer('${cust.id}')" class="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-medium"><i class="fa-solid fa-pen-to-square"></i> แก้ไข</button>
+                                <button onclick="deleteCust('${cust.id}')" class="px-2 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                            ` : ''}
                         </td>
                     </tr>`;
             });
@@ -601,6 +619,80 @@
             }
         };
 
+        window.editCustomer = (id) => {
+            const cust = allCustomers.find(c => c.id === id);
+            if (!cust) return;
+
+            switchTab('form');
+            document.getElementById('editingCustomerId').value = cust.id;
+            document.getElementById('formTitle').textContent = 'แก้ไขข้อมูลใบงานลูกค้า';
+            document.getElementById('formSubtitle').textContent = `กำลังแก้ไขข้อมูลของ: ${cust.name}`;
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+            document.getElementById('custName').value = cust.name || '';
+            document.getElementById('custPhone').value = cust.phone || '';
+            document.getElementById('custEmail').value = cust.email || sessionStorage.getItem('tkp7_user_email');
+            document.getElementById('custRecommender').value = cust.recommender !== '-' ? cust.recommender : '';
+            document.getElementById('custAddress').value = cust.address || '';
+            
+            // เลือกแบรนด์อุปกรณ์
+            const serviceSelect = document.getElementById('custService');
+            for (let i = 0; i < serviceSelect.options.length; i++) {
+                if (serviceSelect.options[i].text.includes(cust.service.split(' ')[0])) {
+                    serviceSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            onEquipmentChange();
+
+            // เลือกอุปกรณ์เสริม (checkbox)
+            document.querySelectorAll('input[name="custAccessory"]').forEach(cb => {
+                const accName = cb.getAttribute('data-name');
+                if (cust.accessories && cust.accessories.includes(accName)) {
+                    cb.checked = true;
+                } else {
+                    cb.checked = false;
+                }
+            });
+
+            // เลือกสายไฟ
+            const wireSelect = document.getElementById('custWire');
+            for (let i = 0; i < wireSelect.options.length; i++) {
+                if (wireSelect.options[i].getAttribute('data-name') === cust.wireBrand) {
+                    wireSelect.selectedIndex = i;
+                    break;
+                }
+            }
+
+            // ระยะสาย
+            const rawDist = (cust.distance || '').replace(/เมตร/g, '').trim();
+            document.getElementById('custDistanceInput').value = rawDist;
+
+            // ประกัน
+            const warSelect = document.getElementById('custWarranty');
+            for (let i = 0; i < warSelect.options.length; i++) {
+                if (warSelect.options[i].getAttribute('data-name') === cust.warranty) {
+                    warSelect.selectedIndex = i;
+                    break;
+                }
+            }
+
+            calculateTotal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.resetFormMode = () => {
+            document.getElementById('editingCustomerId').value = '';
+            document.getElementById('formTitle').textContent = 'ฟอร์มบันทึกข้อมูลลูกค้าใหม่';
+            document.getElementById('formSubtitle').textContent = 'กรอกรายละเอียดข้อมูลลูกค้าเพื่อบันทึกและพิมพ์ใบงาน';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            document.getElementById('customerForm').reset();
+            document.querySelectorAll('input[name="custAccessory"]').forEach(cb => cb.checked = false);
+            document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
+            document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
+            calculateTotal();
+        };
+
         window.printSpecificCustomer = async (id) => {
             const cust = allCustomers.find(c => c.id === id);
             if (cust) {
@@ -612,7 +704,6 @@
         async function generatePrintHTML(cust) {
             const nowStr = new Date().toLocaleString('th-TH', { dateStyle: 'long', timeStyle: 'short' });
             
-            // ดึงค่าระยะสายฟรีสูงสุดจากฐานข้อมูล (distance_pricing_list)
             let includedDistanceLimit = 0;
             let freeDistanceText = 'ระยะสายไฟฟรี';
             try {
@@ -634,7 +725,6 @@
                 });
             } catch (e) {}
 
-            // ดึงราคาต่อเมตรปัจจุบันจาก wire_pricing_list เผื่อเคสข้อมูลเก่าที่ยังไม่มี wirePricePerMeter
             let wireRate = parseFloat(cust.wirePricePerMeter) || 0;
             if (wireRate === 0 && cust.wireBrand) {
                 try {
@@ -648,11 +738,9 @@
                 } catch(e) {}
             }
 
-            // ทำความสะอาดข้อความระยะสายให้แสดงผลตัวเลขเพียวๆ ไม่มีคำว่า เมตร ซ้ำซ้อน
             let rawDistStr = (cust.distance || '0').replace(/เมตร/g, '').trim();
             const custDistNum = parseFloat(rawDistStr) || 0;
 
-            // คำนวณค่าท่อเดินสายไฟส่วนเกิน: (ระยะที่เลือก - ระยะฟรี) * ราคาต่อเมตร
             let pipeCharge = 0;
             if (custDistNum > includedDistanceLimit && includedDistanceLimit > 0) {
                 pipeCharge = (custDistNum - includedDistanceLimit) * wireRate;
