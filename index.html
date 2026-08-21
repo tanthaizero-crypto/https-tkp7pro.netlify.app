@@ -56,6 +56,7 @@
                     <button onclick="switchTab('form')" id="nav-form" class="px-3.5 py-2 text-sm font-medium rounded-xl bg-pink-600 text-white">ลงทะเบียน</button>
                     <button onclick="switchTab('list')" id="nav-list" class="hidden px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10">รายการลูกค้า</button>
                     <button onclick="switchTab('pricing')" id="nav-pricing" class="hidden px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10">กำหนดราคาอุปกรณ์</button>
+                    <button onclick="switchTab('logs')" id="nav-logs" class="hidden px-3.5 py-2 text-sm font-medium rounded-xl text-pink-100 hover:bg-white/10">ประวัติ Login</button>
                     <button onclick="handleLogout()" class="px-3.5 py-2 text-sm font-medium rounded-xl text-rose-200 hover:bg-rose-500/20"><i class="fa-solid fa-right-from-bracket"></i> ออก</button>
                 </div>
             </div>
@@ -263,6 +264,25 @@
                     <table class="w-full text-left text-sm"><tbody id="warrantyTableBody"></tbody></table>
                 </div>
             </div>
+
+            <!-- TAB 4: LOGIN LOGS (ADMIN ONLY) -->
+            <div id="tab-logs" class="hidden space-y-6">
+                <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 p-6">
+                    <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-clock-rotate-left text-pink-600"></i> ประวัติการเข้าสู่ระบบ (E-mail Login Log)</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-pink-50 border-b border-pink-100 text-xs font-bold text-pink-800 uppercase">
+                                    <th class="py-3 px-4">E-mail ผู้ใช้งาน</th>
+                                    <th class="py-3 px-4">เวลาที่เข้าสู่ระบบ</th>
+                                    <th class="py-3 px-4">สถานะบทบาท (Role)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- พิมพ์ใบงาน -->
@@ -302,18 +322,31 @@
             }
         });
 
-        window.handleLogin = (e) => {
+        window.handleLogin = async (e) => {
             e.preventDefault();
             const emailField = document.getElementById('loginEmail');
             if (!emailField) return;
             const email = emailField.value.trim().toLowerCase();
             sessionStorage.setItem('tkp7_logged_in', 'true');
             sessionStorage.setItem('tkp7_user_email', email);
+            
+            let role = 'customer';
             if (email === 'tanthaizero@gmail.com') {
-                sessionStorage.setItem('tkp7_user_role', 'admin');
-            } else {
-                sessionStorage.setItem('tkp7_user_role', 'customer');
+                role = 'admin';
             }
+            sessionStorage.setItem('tkp7_user_role', role);
+
+            // บันทึก Log การ Login ลง Firebase
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'login_logs'), {
+                    email: email,
+                    role: role,
+                    loginAt: new Date().toISOString()
+                });
+            } catch (err) {
+                console.error("Error saving login log:", err);
+            }
+
             location.reload();
         };
 
@@ -330,6 +363,8 @@
             if (role === 'admin') {
                 const navPricing = document.getElementById('nav-pricing');
                 if (navPricing) navPricing.classList.remove('hidden');
+                const navLogs = document.getElementById('nav-logs');
+                if (navLogs) navLogs.classList.remove('hidden');
                 loadAllPricingTables();
             }
             const navList = document.getElementById('nav-list');
@@ -341,7 +376,7 @@
         window.handleLogout = () => { sessionStorage.clear(); location.reload(); };
 
         window.switchTab = (tab) => {
-            ['form', 'list', 'pricing'].forEach(t => {
+            ['form', 'list', 'pricing', 'logs'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.classList.add('hidden');
             });
@@ -349,6 +384,7 @@
             if (target) target.classList.remove('hidden');
             if (tab === 'list') loadCustomers();
             if (tab === 'pricing') loadAllPricingTables();
+            if (tab === 'logs') loadLoginLogs();
         };
 
         window.showModal = (title, msg) => {
@@ -538,13 +574,11 @@
             };
 
             if (editingId) {
-                // อัปเดตข้อมูลเดิม
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', editingId);
                 await updateDoc(docRef, customerData);
                 showModal('อัปเดตสำเร็จ!', 'ข้อมูลลูกค้าถูกแก้ไขเรียบร้อยแล้ว');
                 resetFormMode();
             } else {
-                // เพิ่มข้อมูลใหม่
                 customerData.createdAt = new Date().toISOString();
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), customerData);
                 showModal('บันทึกสำเร็จ!', 'ข้อมูลลูกค้าถูกบันทึกลงระบบเรียบร้อย');
@@ -608,6 +642,33 @@
             });
         };
 
+        window.loadLoginLogs = async () => {
+            const tbody = document.getElementById('logsTableBody');
+            if (!tbody) return;
+            let logsList = [];
+            try {
+                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'login_logs'));
+                snap.forEach(d => {
+                    logsList.push(d.data());
+                });
+            } catch (err) {
+                console.error("Error loading logs:", err);
+            }
+            logsList.sort((a, b) => new Date(b.loginAt || 0) - new Date(a.loginAt || 0));
+
+            tbody.innerHTML = logsList.length === 0 ? '<tr><td colspan="3" class="py-4 text-center text-slate-400">ยังไม่มีประวัติการเข้าสู่ระบบ</td></tr>' : '';
+            logsList.forEach(log => {
+                const timeStr = log.loginAt ? new Date(log.loginAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'medium' }) : '-';
+                const roleBadge = log.role === 'admin' ? '<span class="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-semibold">Admin</span>' : '<span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">Customer</span>';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(log.email)}</td>
+                        <td class="py-3 px-4 text-slate-600 text-xs">${timeStr}</td>
+                        <td class="py-3 px-4">${roleBadge}</td>
+                    </tr>`;
+            });
+        };
+
         window.toggleCustomerStatus = async (id, newStatus) => {
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id);
@@ -635,7 +696,6 @@
             document.getElementById('custRecommender').value = cust.recommender !== '-' ? cust.recommender : '';
             document.getElementById('custAddress').value = cust.address || '';
             
-            // เลือกแบรนด์อุปกรณ์
             const serviceSelect = document.getElementById('custService');
             for (let i = 0; i < serviceSelect.options.length; i++) {
                 if (serviceSelect.options[i].text.includes(cust.service.split(' ')[0])) {
@@ -645,7 +705,6 @@
             }
             onEquipmentChange();
 
-            // เลือกอุปกรณ์เสริม (checkbox)
             document.querySelectorAll('input[name="custAccessory"]').forEach(cb => {
                 const accName = cb.getAttribute('data-name');
                 if (cust.accessories && cust.accessories.includes(accName)) {
@@ -655,7 +714,6 @@
                 }
             });
 
-            // เลือกสายไฟ
             const wireSelect = document.getElementById('custWire');
             for (let i = 0; i < wireSelect.options.length; i++) {
                 if (wireSelect.options[i].getAttribute('data-name') === cust.wireBrand) {
@@ -664,11 +722,9 @@
                 }
             }
 
-            // ระยะสาย
             const rawDist = (cust.distance || '').replace(/เมตร/g, '').trim();
             document.getElementById('custDistanceInput').value = rawDist;
 
-            // ประกัน
             const warSelect = document.getElementById('custWarranty');
             for (let i = 0; i < warSelect.options.length; i++) {
                 if (warSelect.options[i].getAttribute('data-name') === cust.warranty) {
