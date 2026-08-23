@@ -155,15 +155,10 @@
             <!-- TAB 2: LIST -->
             <div id="tab-list" class="space-y-6 hidden">
                 <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                    <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว</h2>
-                        <div class="flex items-center gap-3">
-                            <button onclick="testAudioAlert()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-volume-high"></i> ทดสอบเสียงแจ้งเตือน
-                            </button>
-                            <div id="newJobAlert" class="hidden px-3 py-1 bg-rose-600 text-white text-xs font-bold rounded-full animate-bounce shadow-lg flex items-center gap-1.5">
-                                <i class="fa-solid fa-bell"></i> มีงานเข้าใหม่!
-                            </div>
+                        <div id="newJobAlert" class="hidden px-3 py-1 bg-rose-600 text-white text-xs font-bold rounded-full animate-bounce shadow-lg flex items-center gap-1.5">
+                            <i class="fa-solid fa-bell"></i> มีงานเข้าใหม่!
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -308,12 +303,6 @@
         </div>
     </div>
 
-    <!-- เสียงแจ้งเตือนฝังในโค้ด (รองรับมือถือและคอมพิวเตอร์ 100%) -->
-    <audio id="alertAudio" preload="auto">
-        <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg" type="audio/ogg">
-    </audio>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -333,38 +322,42 @@
         let allCustomers = [];
         let isFirstLoad = true;
 
-        // ฟังก์ชันเล่นเสียงเตือนแบบวนลูปต่อเนื่องประมาณ 5 วินาที
-        window.playAlertSound = () => {
-            const audio = document.getElementById('alertAudio');
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play().catch(err => console.log("Audio play blocked:", err));
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('tkp7_logged_in') === 'true') {
+                unlockApp();
+            }
+        });
 
-                // ทำเสียงบี๊บซ้ำๆ เพื่อให้ดังต่อเนื่องยาวประมาณ 5 วินาที
-                let count = 0;
-                const repeatSound = setInterval(() => {
-                    count++;
-                    if (count >= 5) {
-                        clearInterval(repeatSound);
+        // ฟังก์ชันสร้างเสียงเตือนดังต่อเนื่องยาวประมาณ 5 วินาที
+        function playAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let beepCount = 0;
+                const interval = setInterval(() => {
+                    if (beepCount >= 10) { 
+                        clearInterval(interval);
                         return;
                     }
-                    audio.currentTime = 0;
-                    audio.play().catch(e => {});
-                }, 1000);
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                    beepCount++;
+                }, 450);
+            } catch (e) {
+                console.log("Audio Context Error:", e);
             }
-        };
-
-        window.testAudioAlert = () => {
-            playAlertSound();
-            showModal('ทดสอบเสียง', 'ระบบเสียงแจ้งเตือนพร้อมใช้งานแล้วครับ');
-        };
+        }
 
         window.handleLogin = async (e) => {
             e.preventDefault();
-            // ปลดล็อกเสียงบนมือถือตอนกดล็อกอิน
-            const audio = document.getElementById('alertAudio');
-            if (audio) { audio.play().then(() => audio.pause()).catch(e => {}); }
-
             const emailField = document.getElementById('loginEmail');
             if (!emailField) return;
             const email = emailField.value.trim().toLowerCase();
