@@ -328,18 +328,29 @@
             }
         });
 
+        // ฟังก์ชันสร้างเสียงเตือนดังต่อเนื่องยาวประมาณ 5 วินาที
         function playAlertSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                osc.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
+                let beepCount = 0;
+                const interval = setInterval(() => {
+                    if (beepCount >= 10) { 
+                        clearInterval(interval);
+                        return;
+                    }
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                    beepCount++;
+                }, 450);
             } catch (e) {
                 console.log("Audio Context Error:", e);
             }
@@ -1004,7 +1015,7 @@
         };
         window.handleSaveBasePackage = async (e) => { e.preventDefault(); await saveItem('base_package_pricing', document.getElementById('basePkgName').value, { pkgName: document.getElementById('basePkgName').value, pkgPrice: parseFloat(document.getElementById('basePkgPrice').value) }); };
         window.handleSaveWirePricing = async (e) => { e.preventDefault(); await saveItem('wire_pricing_list', document.getElementById('wireType').value, { wireType: document.getElementById('wireType').value, wirePrice: parseFloat(document.getElementById('wirePrice').value) }); };
-        window.handleSaveDistancePricing = async (e) => { e.preventDefault(); await saveItem('distance_pricing_list', document.getElementById('distanceRange').value, { range: document.getElementById('distanceRange'.value), price: parseFloat(document.getElementById('distancePrice').value) }); };
+        window.handleSaveDistancePricing = async (e) => { e.preventDefault(); await saveItem('distance_pricing_list', document.getElementById('distanceRange').value, { range: document.getElementById('distanceRange').value, price: parseFloat(document.getElementById('distancePrice').value) }); };
         window.handleSaveWarrantyPricing = async (e) => { e.preventDefault(); await saveItem('warranty_pricing_list', document.getElementById('warrantyType').value, { warrantyType: document.getElementById('warrantyType').value, warrantyPrice: parseFloat(document.getElementById('warrantyPrice').value) }); };
 
         async function saveItem(colName, keyName, dataObj) {
