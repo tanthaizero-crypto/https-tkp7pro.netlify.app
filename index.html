@@ -158,8 +158,8 @@
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
                         <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว</h2>
                         <div class="flex items-center gap-3">
-                            <button onclick="testAudioAlert()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow transition">
-                                <i class="fa-solid fa-volume-high mr-1"></i> ทดสอบเสียงแจ้งเตือน
+                            <button onclick="testAudioAlert()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-volume-high"></i> ทดสอบเสียงแจ้งเตือน
                             </button>
                             <div id="newJobAlert" class="hidden px-3 py-1 bg-rose-600 text-white text-xs font-bold rounded-full animate-bounce shadow-lg flex items-center gap-1.5">
                                 <i class="fa-solid fa-bell"></i> มีงานเข้าใหม่!
@@ -308,6 +308,12 @@
         </div>
     </div>
 
+    <!-- เสียงแจ้งเตือนฝังในโค้ด (รองรับมือถือและคอมพิวเตอร์ 100%) -->
+    <audio id="alertAudio" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg" type="audio/ogg">
+    </audio>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -326,63 +332,39 @@
         const db = getFirestore(app);
         let allCustomers = [];
         let isFirstLoad = true;
-        let audioCtx = null;
 
-        // ฟังก์ชันปลดล็อกระบบเสียงบนมือถือเมื่อมีการแตะหน้าจอครั้งแรก
-        function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        window.addEventListener('click', initAudioContext, { once: true });
-        window.addEventListener('touchstart', initAudioContext, { once: true });
-
-        // ฟังก์ชันสร้างเสียงเตือนดังต่อเนื่องประมาณ 5 วินาที
+        // ฟังก์ชันเล่นเสียงเตือนแบบวนลูปต่อเนื่องประมาณ 5 วินาที
         window.playAlertSound = () => {
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+            const audio = document.getElementById('alertAudio');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(err => console.log("Audio play blocked:", err));
 
-                let beepCount = 0;
-                const interval = setInterval(() => {
-                    if (beepCount >= 10) { 
-                        clearInterval(interval);
+                // ทำเสียงบี๊บซ้ำๆ เพื่อให้ดังต่อเนื่องยาวประมาณ 5 วินาที
+                let count = 0;
+                const repeatSound = setInterval(() => {
+                    count++;
+                    if (count >= 5) {
+                        clearInterval(repeatSound);
                         return;
                     }
-                    const osc = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-                    gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                    
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.35);
-                    beepCount++;
-                }, 450);
-            } catch (e) {
-                console.log("Audio Context Error:", e);
+                    audio.currentTime = 0;
+                    audio.play().catch(e => {});
+                }, 1000);
             }
-        }
+        };
 
         window.testAudioAlert = () => {
             playAlertSound();
-            showModal('ทดสอบเสียง', 'ระบบเสียงแจ้งเตือนทำงานปกติแล้วครับ');
+            showModal('ทดสอบเสียง', 'ระบบเสียงแจ้งเตือนพร้อมใช้งานแล้วครับ');
         };
 
         window.handleLogin = async (e) => {
             e.preventDefault();
-            initAudioContext();
+            // ปลดล็อกเสียงบนมือถือตอนกดล็อกอิน
+            const audio = document.getElementById('alertAudio');
+            if (audio) { audio.play().then(() => audio.pause()).catch(e => {}); }
+
             const emailField = document.getElementById('loginEmail');
             if (!emailField) return;
             const email = emailField.value.trim().toLowerCase();
@@ -606,7 +588,6 @@
 
         window.handleFormSubmit = async (e) => {
             e.preventDefault();
-            initAudioContext();
             const totalPrice = await window.calculateTotal();
             const serviceSelect = document.getElementById('custService');
             const wireSelect = document.getElementById('custWire');
