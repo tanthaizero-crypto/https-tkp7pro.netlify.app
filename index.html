@@ -98,7 +98,6 @@
                                     <option value="">-- เลือกแบรนด์อุปกรณ์ --</option>
                                 </select>
                             </div>
-                            <!-- อุปกรณ์เสริมเลือกได้สูงสุด 3 รายการ (Checkbox) -->
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">อุปกรณ์เสริม (เลือกได้สูงสุด 3 รายการ)</label>
                                 <div id="accessoryCheckboxContainer" class="p-3 bg-white/80 border border-slate-200 rounded-xl space-y-2 max-h-40 overflow-y-auto">
@@ -156,13 +155,19 @@
             <!-- TAB 2: LIST -->
             <div id="tab-list" class="space-y-6 hidden">
                 <div class="glass-card rounded-2xl shadow-2xl border border-pink-200/50 p-6">
-                    <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-clipboard-list text-pink-600"></i> รายชื่อลูกค้าที่ลงทะเบียนแล้ว</h2>
+                        <div id="newJobAlert" class="hidden px-3 py-1 bg-rose-600 text-white text-xs font-bold rounded-full animate-bounce shadow-lg flex items-center gap-1.5">
+                            <i class="fa-solid fa-bell"></i> มีงานเข้าใหม่!
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-pink-50 border-b border-pink-100 text-xs font-bold text-pink-800 uppercase">
                                     <th class="py-3 px-4">ชื่อลูกค้า / เบอร์โทร</th>
-                                    <th class="py-3 px-4">สถานะ (คลิกเพื่อเปลี่ยน)</th>
+                                    <th class="py-3 px-4">ผู้แนะนำ</th>
+                                    <th class="py-3 px-4">สถานะ (เลือกเปลี่ยนได้)</th>
                                     <th class="py-3 px-4">แบรนด์อุปกรณ์</th>
                                     <th class="py-3 px-4">ราคารวม</th>
                                     <th class="py-3 px-4 text-center">พิมพ์ใบงาน / จัดการ</th>
@@ -300,7 +305,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'tkp7-circuit2-app';
         const firebaseConfig = {
@@ -315,12 +320,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let allCustomers = [];
+        let isFirstLoad = true;
 
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('tkp7_logged_in') === 'true') {
                 unlockApp();
             }
         });
+
+        function playAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {
+                console.log("Audio Context Error:", e);
+            }
+        }
 
         window.handleLogin = async (e) => {
             e.preventDefault();
@@ -336,7 +359,6 @@
             }
             sessionStorage.setItem('tkp7_user_role', role);
 
-            // บันทึก Log การ Login ลง Firebase
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'login_logs'), {
                     email: email,
@@ -369,7 +391,8 @@
             }
             const navList = document.getElementById('nav-list');
             if (navList) navList.classList.remove('hidden');
-            loadCustomers();
+            
+            initRealtimeCustomers();
             populateFormDropdowns();
         }
 
@@ -382,7 +405,10 @@
             });
             const target = document.getElementById(`tab-${tab}`);
             if (target) target.classList.remove('hidden');
-            if (tab === 'list') loadCustomers();
+            if (tab === 'list') {
+                const alertBadge = document.getElementById('newJobAlert');
+                if (alertBadge) alertBadge.classList.add('hidden');
+            }
             if (tab === 'pricing') loadAllPricingTables();
             if (tab === 'logs') loadLoginLogs();
         };
@@ -587,27 +613,42 @@
                 document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
                 document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
             }
-            loadCustomers();
             switchTab('list');
         };
 
-        window.loadCustomers = async () => {
+        function initRealtimeCustomers() {
             const role = sessionStorage.getItem('tkp7_user_role');
             const email = sessionStorage.getItem('tkp7_user_email');
-            let list = [];
-            const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'));
-            snap.forEach(d => {
-                const data = d.data();
-                if (role === 'admin' || data.email === email) {
-                    list.push({ id: d.id, ...data });
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), (snapshot) => {
+                let list = [];
+                snapshot.forEach(d => {
+                    const data = d.data();
+                    if (role === 'admin' || data.email === email) {
+                        list.push({ id: d.id, ...data });
+                    }
+                });
+                list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+                if (!isFirstLoad && list.length > allCustomers.length) {
+                    playAlertSound();
+                    const alertBadge = document.getElementById('newJobAlert');
+                    if (alertBadge) alertBadge.classList.remove('hidden');
                 }
+
+                allCustomers = list;
+                isFirstLoad = false;
+                renderCustomerTable(list);
             });
-            list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-            allCustomers = list;
-            
+        }
+
+        function renderCustomerTable(list) {
+            const role = sessionStorage.getItem('tkp7_user_role');
             const tbody = document.getElementById('customerTableBody');
             if (!tbody) return;
-            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="5" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            
+            tbody.innerHTML = list.length === 0 ? '<tr><td colspan="6" class="py-4 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>' : '';
+            
             list.forEach(cust => {
                 let accDisplay = '';
                 if (cust.accessories && cust.accessories.length > 0) {
@@ -615,20 +656,30 @@
                 }
 
                 const currentStatus = cust.installStatus || 'งานใหม่';
-                let statusBadge = '';
+                let statusField = '';
+
+                let selectStyle = 'bg-amber-50 text-amber-800 border-amber-200';
+                if (currentStatus === 'รอลูกค้าตัดสินใจ') selectStyle = 'bg-blue-50 text-blue-800 border-blue-200';
+                else if (currentStatus === 'OK กับราคา พร้อมติดตั้ง') selectStyle = 'bg-purple-50 text-purple-800 border-purple-200';
+                else if (currentStatus === 'ติดตั้งแล้ว') selectStyle = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+
                 if (role === 'admin') {
-                    const nextStatus = currentStatus === 'งานใหม่' ? 'ติดตั้งแล้ว' : 'งานใหม่';
-                    const badgeClass = currentStatus === 'งานใหม่' ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
-                    statusBadge = `<button onclick="toggleCustomerStatus('${cust.id}', '${nextStatus}')" class="px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass} transition cursor-pointer" title="คลิกเพื่อเปลี่ยนสถานะ"><i class="fa-solid fa-rotate mr-1"></i> ${currentStatus}</button>`;
+                    statusField = `
+                        <select onchange="changeCustomerStatus('${cust.id}', this.value)" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold border ${selectStyle} transition focus:ring-2 focus:ring-pink-500 cursor-pointer">
+                            <option value="งานใหม่" ${currentStatus === 'งานใหม่' ? 'selected' : ''}>งานใหม่</option>
+                            <option value="รอลูกค้าตัดสินใจ" ${currentStatus === 'รอลูกค้าตัดสินใจ' ? 'selected' : ''}>รอลูกค้าตัดสินใจ</option>
+                            <option value="OK กับราคา พร้อมติดตั้ง" ${currentStatus === 'OK กับราคา พร้อมติดตั้ง' ? 'selected' : ''}>OK กับราคา พร้อมติดตั้ง</option>
+                            <option value="ติดตั้งแล้ว" ${currentStatus === 'ติดตั้งแล้ว' ? 'selected' : ''}>ติดตั้งแล้ว</option>
+                        </select>`;
                 } else {
-                    const badgeClass = currentStatus === 'งานใหม่' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200';
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass}">${currentStatus}</span>`;
+                    statusField = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${selectStyle}">${currentStatus}</span>`;
                 }
 
                 tbody.innerHTML += `
                     <tr>
                         <td class="py-3 px-4 font-semibold">${escapeHtml(cust.name)}<br><span class="text-xs text-slate-500">${escapeHtml(cust.phone)}</span></td>
-                        <td class="py-3 px-4">${statusBadge}</td>
+                        <td class="py-3 px-4 text-slate-700">${escapeHtml(cust.recommender || '-')}</td>
+                        <td class="py-3 px-4">${statusField}</td>
                         <td class="py-3 px-4">${escapeHtml(cust.service)}${accDisplay}</td>
                         <td class="py-3 px-4 font-bold text-pink-700">${Number(cust.totalPrice).toLocaleString()} ฿</td>
                         <td class="py-3 px-4 text-center space-x-2">
@@ -640,7 +691,7 @@
                         </td>
                     </tr>`;
             });
-        };
+        }
 
         window.loadLoginLogs = async () => {
             const tbody = document.getElementById('logsTableBody');
@@ -669,11 +720,10 @@
             });
         };
 
-        window.toggleCustomerStatus = async (id, newStatus) => {
+        window.changeCustomerStatus = async (id, newStatus) => {
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id);
                 await updateDoc(docRef, { installStatus: newStatus });
-                loadCustomers();
             } catch (err) {
                 console.error("Error updating status:", err);
                 showModal('เกิดข้อผิดพลาด', 'ไม่สามารถเปลี่ยนสถานะได้');
@@ -829,6 +879,7 @@
                         <div><strong>ชื่อลูกค้า:</strong> ${escapeHtml(cust.name)}</div>
                         <div><strong>เบอร์โทร:</strong> ${escapeHtml(cust.phone)}</div>
                     </div>
+                    <div style="margin-bottom: 12px; font-size: 14px;"><strong>ชื่อผู้แนะนำ:</strong> ${escapeHtml(cust.recommender || '-')}</div>
                     <div style="margin-bottom: 12px; font-size: 14px;"><strong>สถานะติดตั้ง:</strong> ${escapeHtml(cust.installStatus || 'งานใหม่')}</div>
                     <div style="margin-bottom: 20px; font-size: 14px;"><strong>ที่อยู่:</strong> ${escapeHtml(cust.address)}</div>
 
@@ -899,7 +950,6 @@
         window.deleteCust = async (id) => {
             if (confirm("ต้องการลบข้อมูลนี้ใช่หรือไม่?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2', id));
-                loadCustomers();
             }
         };
 
@@ -954,7 +1004,7 @@
         };
         window.handleSaveBasePackage = async (e) => { e.preventDefault(); await saveItem('base_package_pricing', document.getElementById('basePkgName').value, { pkgName: document.getElementById('basePkgName').value, pkgPrice: parseFloat(document.getElementById('basePkgPrice').value) }); };
         window.handleSaveWirePricing = async (e) => { e.preventDefault(); await saveItem('wire_pricing_list', document.getElementById('wireType').value, { wireType: document.getElementById('wireType').value, wirePrice: parseFloat(document.getElementById('wirePrice').value) }); };
-        window.handleSaveDistancePricing = async (e) => { e.preventDefault(); await saveItem('distance_pricing_list', document.getElementById('distanceRange').value, { range: document.getElementById('distanceRange').value, price: parseFloat(document.getElementById('distancePrice').value) }); };
+        window.handleSaveDistancePricing = async (e) => { e.preventDefault(); await saveItem('distance_pricing_list', document.getElementById('distanceRange').value, { range: document.getElementById('distanceRange'.value), price: parseFloat(document.getElementById('distancePrice').value) }); };
         window.handleSaveWarrantyPricing = async (e) => { e.preventDefault(); await saveItem('warranty_pricing_list', document.getElementById('warrantyType').value, { warrantyType: document.getElementById('warrantyType').value, warrantyPrice: parseFloat(document.getElementById('warrantyPrice').value) }); };
 
         async function saveItem(colName, keyName, dataObj) {
