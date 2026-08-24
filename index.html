@@ -16,6 +16,10 @@
             background-image: linear-gradient(rgba(40, 10, 25, 0.85), rgba(60, 15, 35, 0.85)), url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1785518472043.jpg-F1j1Wn3LhRz6UaN6cR2fX9PqMv8W4p.jpeg');
             background-size: cover; background-position: center; background-attachment: fixed;
         }
+        .bg-login-image {
+            background-image: linear-gradient(rgba(20, 5, 15, 0.55), rgba(40, 10, 30, 0.65)), url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/124796%20-%20Copy.jpg-q0U8N4vW2X9pMv8W4p9Q1r6T3xZ2yL.jpeg');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+        }
         .glass-card { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); }
         @media print {
             body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
@@ -31,8 +35,8 @@
 <body class="h-full bg-custom-image text-slate-800 antialiased">
 
     <!-- LOGIN SCREEN -->
-    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md no-print">
-        <div class="glass-card rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 border border-pink-300/40 text-slate-800">
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-login-image no-print p-4">
+        <div class="glass-card rounded-2xl shadow-2xl max-w-md w-full p-8 border border-pink-300/40 text-slate-800">
             <div class="text-center mb-6">
                 <h2 class="text-2xl font-bold text-slate-900">TKP7 Pro Solutions</h2>
                 <p class="text-xs text-pink-600 font-semibold mt-1">ระบบลงทะเบียนข้อมูลลูกค้าวงจรที่ 2</p>
@@ -323,7 +327,7 @@
         let isFirstLoad = true;
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('tkp7_logged_in') === 'true') {
+            if (localStorage.getItem('tkp7_logged_in') === 'true') {
                 unlockApp();
             }
         });
@@ -361,14 +365,14 @@
             const emailField = document.getElementById('loginEmail');
             if (!emailField) return;
             const email = emailField.value.trim().toLowerCase();
-            sessionStorage.setItem('tkp7_logged_in', 'true');
-            sessionStorage.setItem('tkp7_user_email', email);
+            localStorage.setItem('tkp7_logged_in', 'true');
+            localStorage.setItem('tkp7_user_email', email);
             
             let role = 'customer';
             if (email === 'tanthaizero@gmail.com') {
                 role = 'admin';
             }
-            sessionStorage.setItem('tkp7_user_role', role);
+            localStorage.setItem('tkp7_user_role', role);
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'login_logs'), {
@@ -390,9 +394,9 @@
             if (appEl) appEl.classList.remove('hidden');
             
             const emailInput = document.getElementById('custEmail');
-            if (emailInput) emailInput.value = sessionStorage.getItem('tkp7_user_email') || '';
+            if (emailInput) emailInput.value = localStorage.getItem('tkp7_user_email') || '';
             
-            const role = sessionStorage.getItem('tkp7_user_role');
+            const role = localStorage.getItem('tkp7_user_role');
             if (role === 'admin') {
                 const navPricing = document.getElementById('nav-pricing');
                 if (navPricing) navPricing.classList.remove('hidden');
@@ -407,7 +411,7 @@
             populateFormDropdowns();
         }
 
-        window.handleLogout = () => { sessionStorage.clear(); location.reload(); };
+        window.handleLogout = () => { localStorage.clear(); location.reload(); };
 
         window.switchTab = (tab) => {
             ['form', 'list', 'pricing', 'logs'].forEach(t => {
@@ -597,7 +601,7 @@
             const customerData = {
                 name: document.getElementById('custName').value.trim(),
                 phone: document.getElementById('custPhone').value.trim(),
-                email: sessionStorage.getItem('tkp7_user_email'),
+                email: localStorage.getItem('tkp7_user_email'),
                 recommender: document.getElementById('custRecommender').value.trim() || '-',
                 service: serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : '-',
                 accessories: selectedAccNames,
@@ -621,15 +625,15 @@
                 showModal('บันทึกสำเร็จ!', 'ข้อมูลลูกค้าถูกบันทึกลงระบบเรียบร้อย');
                 document.getElementById('customerForm').reset();
                 document.querySelectorAll('input[name="custAccessory"]').forEach(cb => cb.checked = false);
-                document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
+                document.getElementById('custEmail').value = localStorage.getItem('tkp7_user_email');
                 document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
             }
             switchTab('list');
         };
 
         function initRealtimeCustomers() {
-            const role = sessionStorage.getItem('tkp7_user_role');
-            const email = sessionStorage.getItem('tkp7_user_email');
+            const role = localStorage.getItem('tkp7_user_role');
+            const email = localStorage.getItem('tkp7_user_email');
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'customers_circuit_2'), (snapshot) => {
                 let list = [];
@@ -654,7 +658,7 @@
         }
 
         function renderCustomerTable(list) {
-            const role = sessionStorage.getItem('tkp7_user_role');
+            const role = localStorage.getItem('tkp7_user_role');
             const tbody = document.getElementById('customerTableBody');
             if (!tbody) return;
             
@@ -753,7 +757,7 @@
 
             document.getElementById('custName').value = cust.name || '';
             document.getElementById('custPhone').value = cust.phone || '';
-            document.getElementById('custEmail').value = cust.email || sessionStorage.getItem('tkp7_user_email');
+            document.getElementById('custEmail').value = cust.email || localStorage.getItem('tkp7_user_email');
             document.getElementById('custRecommender').value = cust.recommender !== '-' ? cust.recommender : '';
             document.getElementById('custAddress').value = cust.address || '';
             
@@ -805,7 +809,7 @@
             document.getElementById('cancelEditBtn').classList.add('hidden');
             document.getElementById('customerForm').reset();
             document.querySelectorAll('input[name="custAccessory"]').forEach(cb => cb.checked = false);
-            document.getElementById('custEmail').value = sessionStorage.getItem('tkp7_user_email');
+            document.getElementById('custEmail').value = localStorage.getItem('tkp7_user_email');
             document.getElementById('selectedEquipmentImageContainer').classList.add('hidden');
             calculateTotal();
         };
@@ -965,7 +969,7 @@
         };
 
         window.loadAllPricingTables = async () => {
-            if (sessionStorage.getItem('tkp7_user_role') !== 'admin') return;
+            if (localStorage.getItem('tkp7_user_role') !== 'admin') return;
             loadTableData('equipment_pricing_basic', 'pricingTableBody', item => `
                 <tr>
                     <td class="py-2 px-4">${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" class="w-10 h-10 object-cover rounded-lg border">` : '<span class="text-xs text-slate-400">ไม่มีรูป</span>'}</td>
@@ -1034,7 +1038,7 @@
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return str.name ? str : str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
     </script>
 </body>
